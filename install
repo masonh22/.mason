@@ -1,0 +1,32 @@
+#!/bin/bash
+
+MASON_HOME=$(dirname $0) # may be relative
+MASON_HOME=$(readlink -f $MASON_HOME) # now it is absolute
+
+cd $MASON_HOME
+
+. install-utils $MASON_HOME
+
+echo ''
+
+function setup_emacs_early_init {
+    EMACS_HOME=$(get_emacs_home)
+    ret=$?
+    if [ $ret != 0 ]; then
+        return $ret
+    fi
+
+    if [ ! -f ${EMACS_HOME}/early-init.el ] ||\
+           ! grep '(setq package-enable-at-startup nil)' ${EMACS_HOME}/early-init.el > /dev/null 2>&1; then
+        info 'Adding configuration to early-init.el to disable package.el for straight.el'
+        echo '' >> ${EMACS_HOME}/early-init.el
+        echo ';; Disable package.el for straight.el' >> ${EMACS_HOME}/early-init.el
+        echo '(unless (version< emacs-version "25.1")' >> ${EMACS_HOME}/early-init.el
+        echo '  (setq package-enable-at-startup nil))' >> ${EMACS_HOME}/early-init.el
+    fi
+}
+
+setup_gitconfig
+install_symlinks
+add_to_emacs setup-mason
+setup_emacs_early_init

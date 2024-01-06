@@ -1,0 +1,180 @@
+# Inspired by https://github.com/holman/dotfiles bootstrap script
+
+INSTALL_HOME=$1
+
+if [ -z "$INSTALL_HOME" ]; then
+    echo 'install-utils must be given the root of the project as an argument'
+    exit 1
+fi
+
+function info {
+    printf "\r  [ \033[00;34m..\033[0m ] $@\n"
+}
+
+function user {
+    printf "\r  [ \033[0;33m??\033[0m ] $@\n> "
+}
+
+function success {
+    printf "\r\033[2K  [ \033[00;32mOK\033[0m ] $@\n"
+}
+
+function fail {
+    printf "\r\033[2K  [\033[0;31mFAIL\033[0m] $@\n"
+    echo ''
+    exit 1
+}
+
+function do_op {
+    #echo "$@"
+    $@ || exit
+}
+
+function setup_gitconfig {
+    if [ ! -f git/.gitconfig.local.symlink.home ]; then
+        info 'setup gitconfig'
+        user ' - Enter git author name'
+        read -e git_name
+        user ' - Enter git author email'
+        read -e git_email
+
+        sed -e "s/TEMPLATE_NAME/$git_name/" -e "s/TEMPLATE_EMAIL/$git_email/" git/gitconfig.local.base > git/.gitconfig.local.symlink.home || exit
+
+        success 'gitconfig'
+    fi
+}
+
+function install_symlinks {
+    info 'installing symlinks'
+
+    default_action=
+
+    for src in $(find $INSTALL_HOME \( -name .git -o -name emacs \) -prune -o -name '*.symlink.*' -print); do
+        # files are named <file>.symlink.<rootdir> and get installed in
+        # $HOME/<rootdir>/<file> unless <rootdir> is home, then $HOME/<file>
+        root_dir="${src#*.symlink.}/"
+        if [ "$root_dir" = 'home/' ]; then
+            root_dir=
+        else
+            do_op mkdir -p "$HOME/$root_dir"
+        fi
+        dst="$HOME/${root_dir}$(basename ${src%.symlink.*})"
+
+        action='clean' # no collision
+        if [ -e "$dst" ] || [ -L "$dst" ]; then
+            # check if there is a default action
+            action="${default_action}"
+            # override the action if the correct link already exists
+            if [ "$(readlink $dst)" = "$src" ]; then
+                action='s'
+            elif [ -z "$action" ]; then
+                user "File already exists: $dst ($(basename $src)), what to do? (caps applies the action to all remaining files)\n[s]kip, [o]verwrite, [b]ackup"
+                read -n 1 action
+            fi
+        fi
+
+        skip=false
+        case "$action" in
+            clean)
+                # do nothing
+                ;;
+            S)
+                default_action='s'
+                skip=true
+                ;;
+            O)
+                default_action='o'
+                do_op rm -rf "$dst"
+                ;;
+            o)
+                do_op rm -rf "$dst"
+                ;;
+            B)
+                default_action='b'
+                do_op mv "$new_name" "${new_name}.bak"
+                ;;
+            b)
+                do_op mv "$new_name" "${new_name}.bak"
+                ;;
+            s|*)
+                # skip by default
+                skip=true
+                ;;
+        esac
+
+        if [ "$skip" != "true" ]; then
+            do_op ln -s "$src" "$dst"
+            success "installed $dst"
+        else
+            success "skipped $dst"
+        fi
+    done
+}
+
+function add_to_bashrc {
+    ENV_HOME_NAME=$1
+    if [ -z "${ENV_HOME_NAME}" ]; then
+        echo 'Usage: add_to_bashrc <project-name>'
+        return 1
+    fi
+
+    if ! grep "${ENV_HOME_NAME}" ${HOME}/.bashrc > /dev/null 2>&1; then
+        user "Add '${ENV_HOME_NAME}' to ~/.bashrc? [Y/n]"
+        read -e yes_no
+        case "$yes_no" in
+            n*|N*)
+                success 'Skipped modifying ~/.bashrc'
+                ;;
+            *)
+                echo '' >> ${HOME}/.bashrc
+                echo "export ${ENV_HOME_NAME}=${INSTALL_HOME}" >> ${HOME}/.bashrc
+                echo "source \${${ENV_HOME_NAME}}/env" >> ${HOME}/.bashrc
+                success 'Modified ~/.bashrc'
+                ;;
+        esac
+    else
+        success '.bashrc is already configured'
+    fi
+}
+
+function get_emacs_home {
+    if [ -d "${HOME}/.config/emacs" ]; then
+        echo "${HOME}/.config/emacs"
+    elif [ -d "${HOME}/.emacs.d" ]; then
+        echo "${HOME}/.emacs.d"
+    else
+        fail 'Cannot find emacs configuration directory.'
+        return 1
+    fi
+}
+
+function add_to_emacs {
+    EMACS_PACKAGE_NAME=$1
+    if [ -z "${EMACS_PACKAGE_NAME}" ]; then
+        echo 'Usage: add_to_emacs <package-name>'
+    fi
+
+    EMACS_HOME=$(get_emacs_home)
+    ret=$?
+    if [ $ret != 0 ]; then
+        return $ret
+    fi
+
+    if ! grep "${EMACS_PACKAGE_NAME}" ${EMACS_HOME}/init.el > /dev/null 2>&1; then
+        user "Add package '${EMACS_PACKAGE_NAME}' to ${EMACS_HOME}/init.el? [Y/n]"
+        read -e yes_no
+        case "$yes_no" in
+            n*|N*)
+                success "Skipped modifying ${EMACS_HOME}/init.el"
+                ;;
+            *)
+                echo '' >> ${EMACS_HOME}/init.el
+                echo "(add-to-list 'load-path \"${INSTALL_HOME}/emacs/\")" >> ${EMACS_HOME}/init.el
+                echo "(require '${EMACS_PACKAGE_NAME})" >> ${EMACS_HOME}/init.el
+                success "Modified ${EMACS_HOME}/init.el"
+                ;;
+        esac
+    else
+        success 'Skipping emacs configuration - already configured'
+    fi
+}

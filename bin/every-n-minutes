@@ -1,0 +1,34 @@
+#!/bin/bash
+
+n=20
+m="It has been ${n} minutes"
+
+usage="Usage: $0 [n] [--message \"Message\"]"
+
+if [ "$#" != "0" ]; then
+    n=$1
+    shift
+
+    m="It has been ${n} minutes"
+
+    while let "$# > 0"; do
+        case $1 in
+            -m|--message)
+                shift
+                m=$1
+                shift
+                ;;
+            *)
+                echo $usage
+                echo "Unknown argument $1"
+                exit 1
+        esac
+    done
+fi
+
+n=$((n * 60))
+
+while true; do
+    sleep $n
+    notify-send "${m}"
+done

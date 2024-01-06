@@ -1,0 +1,10 @@
+for f in ${MASON_HOME}/bash/*sh
+do
+    source $f
+done
+
+if [ -x "$(command -v git)" ]; then
+    prompt git > /dev/null
+else
+    prompt simple > /dev/null
+fi
