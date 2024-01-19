@@ -12,7 +12,8 @@ fi
 alias e='emacsclient --alternate-editor="" --create-frame'
 alias eeval='emacsclient --eval'
 alias eping='eeval "(+ 8 34)"'
-alias estop='eeval "(server-mode -1)"'
+alias estop='eeval "(save-buffers-kill-emacs)"'
+alias ekill='eeval "(kill-emacs)"'
 
 alias bashrc='emacs .bashrc && . .bashrc'
 # Add an "alert" alias for long running commands.  Use like so:
