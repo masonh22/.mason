@@ -1,2 +1,1 @@
 git/.gitconfig.local.symlink.home
-.bashrc.symlink.home # base .bashrc, modifications shouldn't be tracked

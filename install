@@ -27,6 +27,7 @@ function setup_emacs_early_init {
 }
 
 setup_gitconfig
+install_copies
 install_symlinks
 add_to_emacs setup-mason
 setup_emacs_early_init
