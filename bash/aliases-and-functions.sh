@@ -15,7 +15,7 @@ alias eping='eeval "(+ 8 34)"'
 alias estop='eeval "(save-buffers-kill-emacs)"'
 alias ekill='eeval "(kill-emacs)"'
 
-alias bashrc='emacs .bashrc && . .bashrc'
+alias bashrc='emacs -nw -Q ~/.bashrc -nw ; . ~/.bashrc'
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
 alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'

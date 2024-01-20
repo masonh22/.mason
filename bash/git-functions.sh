@@ -26,3 +26,20 @@ function git_clean {
 function git_need_push {
     git log origin/$(git_branch)..HEAD --oneline --color=never 2> /dev/null | wc -l
 }
+
+function git_prompt {
+    if [ -n "$(is_git)" ]; then
+        branch=$(color_text $(git_branch))
+        num_unpushed=$(git_need_push)
+        if [ "$num_unpushed" != 0 ]; then
+            num_unpushed=":\e[33m$num_unpushed\e[0m" # yellow
+        else
+            num_unpushed=
+        fi
+        dirty=
+        if [ -z "$(git_clean)" ]; then
+            dirty='\e[31mx\e[0m:' # red 'x'
+        fi
+        echo -e " \e[0m(${dirty}${branch}${num_unpushed})"
+    fi
+}

@@ -48,21 +48,23 @@
   (global-hl-todo-mode +1))
 
 ;; eglot TODO use-package, but straight.el clones this...
-(require 'eglot)
-(add-to-list 'eglot-server-programs '((c++-ts-mode c-ts-mode) "clangd"))
-(setq eglot-ignored-server-capabilities
-      '(:hoverProvider
-        :inlayHintProvider))
-(add-hook 'c-ts-mode 'eglot-ensure)
-(add-hook 'c++-ts-mode 'eglot-ensure)
-(add-hook 'typescript-ts-mode 'eglot-ensure)
-(add-hook 'tsx-ts-mode 'eglot-ensure)
+
+(unless (version< emacs-version "29.1")
+  (require 'eglot)
+  (add-to-list 'eglot-server-programs '((c++-ts-mode c-ts-mode) "clangd"))
+  (setq eglot-ignored-server-capabilities
+        '(:hoverProvider
+          :inlayHintProvider))
+  (add-hook 'c-ts-mode-hook 'eglot-ensure)
+  (add-hook 'c++-ts-mode-hook 'eglot-ensure)
+  (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
+  (add-hook 'tsx-ts-mode-hook 'eglot-ensure))
 ;(add-hook 'tuareg-mode 'eglot-ensure)
 
 (use-package rainbow-delimiters
   :hook c++-ts-mode
   :hook c-ts-mode
-  :hook emacs-lisp-mode
+  :hook emacs-lisp-mode ; TODO emacs-lisp-mode or tuareg?
   :hook tsx-ts-mode
   :hook typescript-ts-mode)
 
@@ -71,14 +73,6 @@
   (global-undo-tree-mode)
   :custom
   (undo-tree-auto-save-history 'nil))
-
-;; TODO remove in v29, replaced by elgot; TODO get lean to work with eglot
-;; (use-package lsp-mode
-;;   :init
-;;   (setq lsp-keymap-prefix "C-c l")
-;;   :hook
-;;   (lean4-mode . lsp)
-;;   :commands (lsp))
 
 ;; this clones eglot...
 ;; (use-package eglot
@@ -97,16 +91,16 @@
   (ivy-use-virtual-buffers t)
   (ivy-count-format "(%d/%d) ")
   :bind
-  (("\C-s" . 'swiper)
+  (("C-s" . 'swiper)
    ("C-M-s" . 'isearch-forward)
    ("C-c s" . 'swiper-thing-at-point)))
+
+;; ripgrep frontend (for projectile)
+(use-package rg)
 
 (use-package counsel-projectile
   :init
   (counsel-projectile-mode))
-
-;; ripgrep frontend (for projectile)
-(use-package rg)
 
 (use-package projectile
   :init
@@ -124,11 +118,6 @@
                   (projectile-project-type))
         "")))
   (projectile-indexing-method 'alien)
-  ;; (projectile-globally-ignored-directories
-  ;;  (append '("*node_modules"
-  ;;            "*build"
-  ;;            "*\\.git")
-  ;;          projectile-globally-ignored-directories))
   :bind
   (:map projectile-mode-map
         ("C-c p" . projectile-command-map)))
@@ -143,14 +132,12 @@
   :custom
   (proof-splash-enable 'nil))
 
+;; TODO company or company-mode?
 (use-package company
   :hook typescript-ts-mode
   :hook tsx-ts-mode
   :hook c++-ts-mode
   :hook c-ts-mode)
-
-(use-package company-coq
-  :hook coq-mode)
 
 ;; Major mode for OCaml programming
 (use-package tuareg
@@ -166,25 +153,6 @@
 ;; Major mode for editing Dune project files
 (use-package dune)
 
-;; this requires dash f flycheck lsp-mode magit-section and s...
-;; dash: a modern list library
-;; f: a modern API for working with files and directories
-;; flycheck: syntax checking
-;; lsp-mode: language server protocol
-;; magit-section: UI stuff
-;; s: the long lost string manipulation library
-(unless (version<= emacs-version "25.1")
-  (use-package lean4-mode
-    :straight (lean4-mode
-               :type git
-               :host github
-               :repo "leanprover/lean4-mode"
-               :files ("*.el" "data"))
-    ;; defer loading the package until required (?)
-    :commands (lean4-mode)
-    :config
-    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.lake\\'")))
-
 ;; highlight chars
 (use-package highlight-chars
   :hook
@@ -195,4 +163,6 @@
   (tuareg-mode . hc-highlight-tabs)
   (tuareg-mode . hc-highlight-trailing-whitespace)
   (rust-mode . hc-highlight-tabs)
-  (rust-mode . hc-highlight-trailing-whitespace))
+  (rust-mode . hc-highlight-trailing-whitespace)
+  (shell-script-mode . hc-highlight-tabs)
+  (shell-script-mode . hc-highlight-trailing-whitespace))

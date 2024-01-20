@@ -2,8 +2,8 @@
 [include]
   path = ~/.gitconfig.local
 [init]
-	defaultBranch = master
+  defaultBranch = master
 [pull]
-	rebase = false
+  rebase = false
 [push]
-	recurseSubmodules = check
+  recurseSubmodules = check

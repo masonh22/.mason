@@ -20,7 +20,7 @@
 ;; Line numbers
 ;; (global-display-line-numbers-mode)
 
-;; auto revert
+;; always auto revert
 (global-auto-revert-mode 1)
 
 ;; no tabs!
