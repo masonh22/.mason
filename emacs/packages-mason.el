@@ -51,7 +51,7 @@
 
 (unless (version< emacs-version "29.1")
   (require 'eglot)
-  (add-to-list 'eglot-server-programs '((c++-ts-mode c-ts-mode) "clangd"))
+  (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
   (setq eglot-ignored-server-capabilities
         '(:hoverProvider
           :inlayHintProvider))
@@ -73,11 +73,6 @@
   (global-undo-tree-mode)
   :custom
   (undo-tree-auto-save-history 'nil))
-
-;; this clones eglot...
-;; (use-package eglot
-;;   :hook (typescript-ts-mode . eglot-ensure))
-(add-hook 'typescript-ts-mode-hook 'eglot-ensure)
 
 (use-package ace-window
   :bind

@@ -25,7 +25,6 @@
 
 ;; no tabs!
 (setq-default indent-tabs-mode nil)
-(setq-default tab-width 2) ;; doesn't do anything?
 
 ;; fill column text wrapping
 (setq-default fill-column 80)
@@ -47,6 +46,8 @@
       scroll-preserve-screen-position t
       scroll-margin 2
       scroll-conservatively 1)
+;; smooth scrolling
+(pixel-scroll-precision-mode)
 
 ;; keybindings
 (global-set-key (kbd "C-c r") 'replace-string)
@@ -64,9 +65,6 @@
 
 ;; windmove to S-<arrow keys>
 (windmove-default-keybindings)
-
-;; smooth scrolling
-(pixel-scroll-precision-mode)
 
 ;; OSC directory tracking
 ;; https://www.masteringemacs.org/article/running-shells-in-emacs-overview
