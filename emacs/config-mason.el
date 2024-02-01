@@ -25,6 +25,7 @@
 
 ;; no tabs!
 (setq-default indent-tabs-mode nil)
+(setq-default tab-width 8)
 
 ;; fill column text wrapping
 (setq-default fill-column 80)
@@ -34,8 +35,15 @@
 ;; modeline
 ;; (setq display-time-default-load-average nil)
 ;; (display-time)
-(line-number-mode)
-(column-number-mode)
+(line-number-mode t)
+(column-number-mode t)
+;; (size-indication-mode t)
+
+;; Frame title
+(setq frame-title-format
+      '((:eval (if (buffer-file-name)
+                   (abbreviate-file-name (buffer-file-name))
+                 "%b"))))
 
 ;; Restore cursor to last place in a file when reopening
 (save-place-mode 1)
@@ -45,22 +53,18 @@
       mouse-wheel-progressive-speed nil
       scroll-preserve-screen-position t
       scroll-margin 2
-      scroll-conservatively 1)
-;; smooth scrolling
-(pixel-scroll-precision-mode)
+      scroll-conservatively 100000)
+
+(when (fboundp 'pixel-scroll-precision-mode)
+  (pixel-scroll-precision-mode t))
 
 ;; keybindings
 (global-set-key (kbd "C-c r") 'replace-string)
 
-;; org
-(global-set-key (kbd "C-c l") #'org-store-link)
-(global-set-key (kbd "C-c a") #'org-agenda)
-(global-set-key (kbd "C-c c") #'org-capture)
-
 ;; confirm quit
 (setq confirm-kill-emacs 'y-or-n-p)
 
-;; 75 mb
+;; 75MB
 (setq large-file-warning-threshold 75000000)
 
 ;; windmove to S-<arrow keys>
@@ -98,3 +102,31 @@
    (((class color) (background dark)) (:foreground "burlywood1"))))
 
 (put 'upcase-region 'disabled nil)
+
+;; Garbage collection stuff: https://akrl.sdf.org/#orgc15a10d
+;; Set garbage collection threshold to ~250MB
+(setq gc-cons-threshold 250000000)
+
+(defmacro k-time (&rest body)
+  "Measure and return the time it takes evaluating BODY."
+  `(let ((time (current-time)))
+     ,@body
+     (float-time (time-since time))))
+
+;; When idle for 15sec run the GC no matter what.
+(defvar k-gc-timer
+  (run-with-idle-timer 15 t
+                       (lambda ()
+                         (message "Garbage Collector has run for %.06fsec"
+                                  (k-time (garbage-collect))))))
+
+;; Run GC after losing focus
+(add-function :after
+              after-focus-change-function
+              (lambda () (unless (frame-focus-state) (garbage-collect))))
+
+;; Always load newest byte code
+(setq load-prefer-newer t)
+
+;; tab first indents, then tries to complete
+(setq tab-always-indent 'complete)
