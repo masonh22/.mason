@@ -39,8 +39,10 @@ export CARGO_INSTALL_ROOT=${HOME}/.local
 # elan (lean) configuration
 test -r ${HOME}/.elan/env && . ${HOME}/.elan/env
 
-# kubectl configuration
-type kubectl > /dev/null 2>&1 && source <(kubectl completion bash)
+# kubectl configuration (disabled because this is slow)
+# [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/environment.sh kubectl"
+# type kubectl > /dev/null 2>&1 && source <(kubectl completion bash)
+# [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/environment.sh kubectl done"
 
 # set PATH so it includes .mason bin if it exists
 if [ -d "${MASON_HOME}/bin" ]; then

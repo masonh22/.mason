@@ -1,10 +1,16 @@
+[ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env"
+
 for f in ${MASON_HOME}/bash/*sh
 do
+    [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env $f"
     source $f
 done
 
 if [ -x "$(command -v git)" ]; then
+    [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) prompt"
     prompt git > /dev/null
 else
     prompt simple > /dev/null
 fi
+
+[ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env done"
