@@ -130,3 +130,10 @@
 
 ;; tab first indents, then tries to complete
 (setq tab-always-indent 'complete)
+
+;; isearch
+(setq search-whitespace-regexp ".*?")
+(setq isearch-lazy-highlight t
+      isearch-lazy-count t
+      lazy-count-prefix-format "(%s/%s) "
+      lazy-count-suffix-format nil)
