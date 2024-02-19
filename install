@@ -16,14 +16,10 @@ function setup_emacs_early_init {
         return $ret
     fi
 
-    if [ ! -f ${EMACS_HOME}/early-init.el ] ||\
-           ! grep '(setq package-enable-at-startup nil)' ${EMACS_HOME}/early-init.el > /dev/null 2>&1; then
-        info 'Adding configuration to early-init.el to disable package.el for straight.el'
-        echo '' >> ${EMACS_HOME}/early-init.el
-        echo ';; Disable package.el for straight.el' >> ${EMACS_HOME}/early-init.el
-        echo '(unless (version< emacs-version "25.1")' >> ${EMACS_HOME}/early-init.el
-        echo '  (setq package-enable-at-startup nil))' >> ${EMACS_HOME}/early-init.el
-    fi
+    src=${MASON_HOME}/emacs/early-init.el
+    dst=${EMACS_HOME}/early-init.el
+
+    install_symlink "$src" "$dst"
 }
 
 setup_gitconfig

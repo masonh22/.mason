@@ -37,7 +37,6 @@
 ;; (display-time)
 (line-number-mode t)
 (column-number-mode t)
-;; (size-indication-mode t)
 
 ;; Frame title
 (setq frame-title-format
@@ -102,28 +101,6 @@
    (((class color) (background dark)) (:foreground "burlywood1"))))
 
 (put 'upcase-region 'disabled nil)
-
-;; Garbage collection stuff: https://akrl.sdf.org/#orgc15a10d
-;; Set garbage collection threshold to ~250MB
-(setq gc-cons-threshold 250000000)
-
-(defmacro k-time (&rest body)
-  "Measure and return the time it takes evaluating BODY."
-  `(let ((time (current-time)))
-     ,@body
-     (float-time (time-since time))))
-
-;; When idle for 15sec run the GC no matter what.
-(defvar k-gc-timer
-  (run-with-idle-timer 15 t
-                       (lambda ()
-                         (message "Garbage Collector has run for %.06fsec"
-                                  (k-time (garbage-collect))))))
-
-;; Run GC after losing focus
-(add-function :after
-              after-focus-change-function
-              (lambda () (unless (frame-focus-state) (garbage-collect))))
 
 ;; Always load newest byte code
 (setq load-prefer-newer t)

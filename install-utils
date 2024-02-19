@@ -44,6 +44,66 @@ function setup_gitconfig {
     fi
 }
 
+function install_symlink {
+    if [ "$#" != 2 ]; then
+        fail 'Internal error: install_symlink requires two arguments'
+        fail "$@"
+        return 1
+    fi
+
+    src="$1"
+    dst="$2"
+
+    action='clean' # no collision
+    if [ -e "$dst" ] || [ -L "$dst" ]; then
+        # check if there is a default action
+        action="${default_action}"
+        # override the action if the correct link already exists
+        if [ "$(readlink $dst)" = "$src" ]; then
+            action='s'
+        elif [ -z "$action" ]; then
+            user "File already exists: $dst ($(basename $src)), what to do? (caps applies the action to all remaining files)\n[s]kip, [o]verwrite, [b]ackup"
+            read -n 1 action
+        fi
+    fi
+
+    skip=false
+    case "$action" in
+        clean)
+        # do nothing
+        ;;
+        S)
+            default_action='s'
+            skip=true
+            ;;
+        O)
+            default_action='o'
+            do_op rm -rf "$dst"
+            ;;
+        o)
+            do_op rm -rf "$dst"
+            ;;
+        B)
+            default_action='b'
+            do_op mv "$new_name" "${new_name}.bak"
+            ;;
+        b)
+            do_op mv "$new_name" "${new_name}.bak"
+            ;;
+        s|*)
+            # skip by default
+            skip=true
+            ;;
+    esac
+
+    if [ "$skip" != "true" ]; then
+        do_op ln -s "$src" "$dst"
+        success "installed $dst"
+    else
+        success "skipped $dst"
+    fi
+}
+
 function install_symlinks {
     info 'installing symlinks'
 
@@ -60,54 +120,7 @@ function install_symlinks {
         fi
         dst="$HOME/${root_dir}$(basename ${src%.symlink.*})"
 
-        action='clean' # no collision
-        if [ -e "$dst" ] || [ -L "$dst" ]; then
-            # check if there is a default action
-            action="${default_action}"
-            # override the action if the correct link already exists
-            if [ "$(readlink $dst)" = "$src" ]; then
-                action='s'
-            elif [ -z "$action" ]; then
-                user "File already exists: $dst ($(basename $src)), what to do? (caps applies the action to all remaining files)\n[s]kip, [o]verwrite, [b]ackup"
-                read -n 1 action
-            fi
-        fi
-
-        skip=false
-        case "$action" in
-            clean)
-                # do nothing
-                ;;
-            S)
-                default_action='s'
-                skip=true
-                ;;
-            O)
-                default_action='o'
-                do_op rm -rf "$dst"
-                ;;
-            o)
-                do_op rm -rf "$dst"
-                ;;
-            B)
-                default_action='b'
-                do_op mv "$new_name" "${new_name}.bak"
-                ;;
-            b)
-                do_op mv "$new_name" "${new_name}.bak"
-                ;;
-            s|*)
-                # skip by default
-                skip=true
-                ;;
-        esac
-
-        if [ "$skip" != "true" ]; then
-            do_op ln -s "$src" "$dst"
-            success "installed $dst"
-        else
-            success "skipped $dst"
-        fi
+        install_symlink $src $dst
     done
 }
 
