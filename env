@@ -14,3 +14,4 @@ else
 fi
 
 [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env done"
+: # no-op to clear return code
