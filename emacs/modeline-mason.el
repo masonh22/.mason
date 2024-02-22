@@ -49,7 +49,7 @@ The current buffer is propertized with 'mode-line-buffer-id' face.")
                     ((derived-mode-p 'text-mode) "§")
                     ((derived-mode-p 'prog-mode) "λ")
                     ((derived-mode-p 'comint-mode) ">_")
-                    (t "◦"))))
+                    (t "∘"))))
     (propertize indicator 'face 'shadow)))
 
 (defvar-local mason-major-mode
@@ -98,7 +98,9 @@ The current buffer is propertized with 'mode-line-buffer-id' face.")
     '(:eval
       (let ((project-name (projectile-project-name))
             (project-type (projectile-project-type)))
-        (when (or project-name project-type)
+        (when (or project-type
+                  (and project-name
+                       ((not string= project-name "-"))))
           (list
            "  "
            (format "[%s%s]"
