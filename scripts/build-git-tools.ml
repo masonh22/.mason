@@ -68,46 +68,8 @@ let package_specs : package list = [
         ]);
     };
     {
-      name = "nghttp2";
-      repo = "git clone https://github.com/nghttp2/nghttp2.git";
-      first_time =
-        (fun install_dir ->
-          [
-            "sudo apt install -y binutils autoconf automake autotools-dev \
-             libtool pkg-config zlib1g-dev libcunit1-dev libssl-dev libxml2-dev \
-             libev-dev libevent-dev libjansson-dev libc-ares-dev libjemalloc-dev \
-             libsystemd-dev ruby-dev bison libelf-dev";
-            "autoreconf -i";
-            "automake";
-            "autoconf";
-            "CFLAGS='-march=native' CPPFLAGS='-march=native' ./configure --prefix=" ^ install_dir;
-        ]);
-      compile =
-        (fun _ ->
-          [
-            "make -j" ^ !jobs;
-            "make install";
-        ]);
-    };
-    {
-      name = "curl";
-      repo = "git clone https://github.com/curl/curl.git";
-      first_time =
-        (fun install_dir ->
-          [
-            "autoreconf -fi";
-            "CFLAGS='-march=native' CPPFLAGS='-march=native' ./configure --enable-optimize --disable-curldebug --enable-http --with-openssl --with-nghttp2=" ^ install_dir ^ " --prefix=" ^ install_dir;
-        ]);
-      compile =
-        (fun _ ->
-          [
-            "make -j" ^ !jobs;
-            "make install";
-        ]);
-    };
-    {
       name = "emacs";
-      repo = "git clone -b emacs-29 https://github.com/emacs-mirror/emacs.git";
+      repo = "git clone https://github.com/emacs-mirror/emacs.git";
       first_time =
         (fun install_dir ->
           [
@@ -117,7 +79,7 @@ let package_specs : package list = [
              libmagick++-dev libwebp-dev webp libxft-dev libxft2 libgtk-3-dev \
              texinfo libgnutls28-dev libncurses-dev";
             "./autogen.sh";
-            "CFLAGS='-march=native -O2 -g3' CPPFLAGS='-march=native' ./configure --with-native-compilation=aot --with-pgtk --with-imagemagick --prefix=" ^ install_dir;
+            "CFLAGS='-march=native -O2 -g3' CXXFLAGS='-march=native -O2 -g3' ./configure --with-native-compilation=aot --with-pgtk --with-imagemagick --with-json --with-tree-sitter --prefix=" ^ install_dir;
         ]);
       compile =
         (fun _ ->
