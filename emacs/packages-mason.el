@@ -234,10 +234,10 @@
 
   ;; Optionally configure preview. The default value
   ;; is 'any, such that any key triggers the preview.
-  ;; (setq consult-preview-key 'any)
+  (setq consult-preview-key 'any)
   ;; (setq consult-preview-key "M-.")
   ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
-  (setq consult-preview-key nil)
+  ;; (setq consult-preview-key nil)
   ;; For some commands and buffer sources it is useful to configure the
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
   (consult-customize
@@ -248,6 +248,11 @@
    consult--source-recent-file consult--source-project-recent-file
    ;; :preview-key "M-."
    :preview-key '(:debounce 0.4 any))
+
+  ;; Disable preview for switching buffers
+  (consult-customize
+   consult-buffer
+   :preview-key nil)
 
   ;; https://github.com/minad/consult/issues/651
   ;; maybe try to find the sorting that ivy uses?
