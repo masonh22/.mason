@@ -100,7 +100,7 @@ The current buffer is propertized with 'mode-line-buffer-id' face.")
             (project-type (projectile-project-type)))
         (when (or project-type
                   (and project-name
-                       ((not string= project-name "-"))))
+                       (not (string= project-name "-"))))
           (list
            "  "
            (format "[%s%s]"
@@ -118,7 +118,6 @@ The current buffer is propertized with 'mode-line-buffer-id' face.")
   "Mode line construct displaying `mode-line-misc-info'.
 Specific to the current window's mode line.")
 
-;; TODO not sure if this is necessary
 (when (version< emacs-version "30")
   (defvar-local mode-line-format-right-align "")
   (put 'mode-line-format-right-align 'risky-local-variable t))
@@ -151,6 +150,8 @@ Specific to the current window's mode line.")
       "  "
       mason-buffer-identification
       mason-major-mode
+      "  "
+      mode-line-position   ;; Line, column, and position TODO better here
       mason-process
       mason-projectile
 

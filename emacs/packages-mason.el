@@ -45,20 +45,29 @@
 
 (use-package hl-todo
   :config
-  (global-hl-todo-mode +1))
+  (global-hl-todo-mode +1)
+  (add-to-list 'hl-todo-keyword-faces
+               '("MASON" . "#cc9393")))
 
 ;; eglot TODO use-package, but straight.el clones this...
 (unless (version< emacs-version "29.1")
   (require 'eglot)
-  (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+  (add-to-list 'eglot-server-programs '((c++-mode c-mode) . ("clangd" "--header-insertion=never")))
   (setq eglot-ignored-server-capabilities
-        '(:hoverProvider
+        '(:hoverProvider ; TODO hoverProvider is necessary for eldoc? but I don't want it running all the time, just for hotkey
           :inlayHintProvider))
   (add-hook 'c-ts-mode-hook 'eglot-ensure)
   (add-hook 'c++-ts-mode-hook 'eglot-ensure)
   (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
   (add-hook 'tsx-ts-mode-hook 'eglot-ensure))
   ;(add-hook 'tuareg-mode 'eglot-ensure)
+
+;; TODO where does eldoc come from? I think I already have it installed...
+(use-package eldoc-box
+  ;; :hook
+  ;; (eglot-managed-mode . eldoc-box-hover-at-point-mode)
+  :bind
+  ("C-c h" . 'eldoc-box-help-at-point))
 
 (use-package rainbow-delimiters
   :hook c++-ts-mode
@@ -228,6 +237,7 @@
   ;; (setq consult-preview-key 'any)
   ;; (setq consult-preview-key "M-.")
   ;; (setq consult-preview-key '("S-<down>" "S-<up>"))
+  (setq consult-preview-key nil)
   ;; For some commands and buffer sources it is useful to configure the
   ;; :preview-key on a per-command basis using the `consult-customize' macro.
   (consult-customize
@@ -238,6 +248,16 @@
    consult--source-recent-file consult--source-project-recent-file
    ;; :preview-key "M-."
    :preview-key '(:debounce 0.4 any))
+
+  ;; https://github.com/minad/consult/issues/651
+  ;; maybe try to find the sorting that ivy uses?
+  (defun consult--buffer-sort-mru (xs)
+    (append (cdr xs) (list (car xs))))
+  (consult-customize
+   consult--source-buffer
+   :items
+   (lambda () (consult--buffer-query :sort 'mru
+                                     :as #'buffer-name)))
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
@@ -293,7 +313,7 @@
 
 ;; TODO try crux
 
-;; ripgrep frontend (for projectile)
+;; ripgrep frontend
 (use-package rg)
 
 (use-package projectile
@@ -304,17 +324,11 @@
    '(projectile-root-local
      projectile-root-marked
      projectile-root-bottom-up))
-  (projectile-mode-line-function
-   '(lambda ()
-      (if (projectile-project-p)
-          (format " Proj[%s:%s]"
-                  (projectile-project-name)
-                  (projectile-project-type))
-        "")))
   (projectile-indexing-method 'alien)
-  :bind
-  (:map projectile-mode-map
-        ("C-c p" . projectile-command-map)))
+  ;; :bind
+  ;; (:map projectile-mode-map
+  ;;       ("C-c p" . projectile-command-map))
+  )
 
 (use-package haskell-mode)
 

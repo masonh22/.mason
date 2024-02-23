@@ -38,11 +38,24 @@
 (line-number-mode t)
 (column-number-mode t)
 
-;; Frame title
+;; Frame title: projectile project or file name
 (setq frame-title-format
-      '((:eval (if (buffer-file-name)
-                   (abbreviate-file-name (buffer-file-name))
-                 "%b"))))
+      '(:eval
+        (let ((project-name (projectile-project-name))
+              (project-type (projectile-project-type)))
+          (if (or project-type
+                  (and project-name
+                       (not (string= project-name "-"))))
+              (list
+               "  "
+               (format "[%s%s]"
+                       (or project-name "-")
+                       (if project-type
+                           (format ":%s" project-type)
+                         "")))
+            (if (buffer-file-name)
+                (abbreviate-file-name (buffer-file-name))
+              "%b")))))
 
 ;; Restore cursor to last place in a file when reopening
 (save-place-mode 1)
