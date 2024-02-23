@@ -48,10 +48,10 @@
                        (not (string= project-name "-"))))
               (list
                "  "
-               (format "[%s%s]"
+               (format "%s%s"
                        (or project-name "-")
                        (if project-type
-                           (format ":%s" project-type)
+                           (format " (%s)" project-type)
                          "")))
             (if (buffer-file-name)
                 (abbreviate-file-name (buffer-file-name))
