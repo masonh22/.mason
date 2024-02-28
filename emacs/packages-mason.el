@@ -52,7 +52,8 @@
 ;; eglot TODO use-package, but straight.el clones this...
 (unless (version< emacs-version "29.1")
   (require 'eglot)
-  (add-to-list 'eglot-server-programs '((c++-mode c-mode) . ("clangd" "--header-insertion=never")))
+  (add-to-list 'eglot-server-programs
+               '((c++-mode c-mode) . ("clangd" "--header-insertion=never")))
   (setq eglot-ignored-server-capabilities
         '(:hoverProvider ; TODO hoverProvider is necessary for eldoc? but I don't want it running all the time, just for hotkey
           :inlayHintProvider))
@@ -338,8 +339,15 @@
 (use-package haskell-mode)
 
 (use-package rust-mode
+  :init
+  (setq rust-mode-treesitter-derive t)
+  (add-to-list 'eglot-server-programs
+               '((rust-ts-mode) . ("rust-analyzer" :initializationOptions
+                                   (:check (:command "clippy")))))
   :custom
-  (rust-indent-offset 2))
+  (rust-indent-offset 2)
+  :hook
+  (rust-ts-mode . eglot-ensure))
 
 ;; Major mode for OCaml programming
 (use-package tuareg

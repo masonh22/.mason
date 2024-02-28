@@ -15,11 +15,12 @@
         (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
         (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
         (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
-        ;(ocaml "https://github.com/tree-sitter/tree-sitter-ocaml" "master" "ocaml/src")
+        (rust "https://github.com/tree-sitter/tree-sitter-rust")
+        ;; (ocaml "https://github.com/tree-sitter/tree-sitter-ocaml" "master" "ocaml/src")
         ))
 
 ;; only need to run this once?
-;(mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
+;; (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist))
 
 ;; (use-package treesit
 ;;   :ensure nil ;; emacs built-in
@@ -36,4 +37,5 @@
 (setq major-mode-remap-alist
       '((c-mode . c-ts-mode)
         (c++-mode . c++-ts-mode)
-        (bash-mode . bash-ts-mode)))
+        (bash-mode . bash-ts-mode)
+        (rust-mode . rust-ts-mode)))
