@@ -119,7 +119,7 @@
 (setq load-prefer-newer t)
 
 ;; tab first indents, then tries to complete
-(setq tab-always-indent 'complete)
+;; (setq tab-always-indent 'complete)
 
 ;; isearch
 (setq search-whitespace-regexp ".*?")

@@ -55,20 +55,13 @@
   (add-to-list 'eglot-server-programs
                '((c++-mode c-mode) . ("clangd" "--header-insertion=never")))
   (setq eglot-ignored-server-capabilities
-        '(:hoverProvider ; TODO hoverProvider is necessary for eldoc? but I don't want it running all the time, just for hotkey
-          :inlayHintProvider))
+        '(:inlayHintProvider))
   (add-hook 'c-ts-mode-hook 'eglot-ensure)
   (add-hook 'c++-ts-mode-hook 'eglot-ensure)
   (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
-  (add-hook 'tsx-ts-mode-hook 'eglot-ensure))
+  (add-hook 'tsx-ts-mode-hook 'eglot-ensure)
+  (add-hook 'eglot-managed-mode-hook (lambda () (eldoc-mode -1))))
   ;(add-hook 'tuareg-mode 'eglot-ensure)
-
-;; TODO where does eldoc come from? I think I already have it installed...
-(use-package eldoc-box
-  ;; :hook
-  ;; (eglot-managed-mode . eldoc-box-hover-at-point-mode)
-  :bind
-  ("C-c h" . 'eldoc-box-help-at-point))
 
 (use-package rainbow-delimiters
   :hook c++-ts-mode
@@ -115,7 +108,7 @@
   ;; (setq vertico-resize t)
 
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  ;; (setq vertico-cycle t)
+  (setq vertico-cycle t)
   )
 
 (use-package corfu
@@ -250,20 +243,11 @@
    ;; :preview-key "M-."
    :preview-key '(:debounce 0.4 any))
 
-  ;; Disable preview for switching buffers
+  ;; Disable preview for switching buffers and grep
   (consult-customize
-   consult-buffer
+   consult-buffer consult-grep
+   consult-git-grep consult-ripgrep
    :preview-key nil)
-
-  ;; https://github.com/minad/consult/issues/651
-  ;; maybe try to find the sorting that ivy uses?
-  (defun consult--buffer-sort-mru (xs)
-    (append (cdr xs) (list (car xs))))
-  (consult-customize
-   consult--source-buffer
-   :items
-   (lambda () (consult--buffer-query :sort 'mru
-                                     :as #'buffer-name)))
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
