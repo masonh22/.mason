@@ -55,13 +55,12 @@
   (add-to-list 'eglot-server-programs
                '((c++-mode c-mode) . ("clangd" "--header-insertion=never")))
   (setq eglot-ignored-server-capabilities
-        '(:inlayHintProvider))
+        '(:hoverProvider
+          :inlayHintProvider))
   (add-hook 'c-ts-mode-hook 'eglot-ensure)
   (add-hook 'c++-ts-mode-hook 'eglot-ensure)
   (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
-  (add-hook 'tsx-ts-mode-hook 'eglot-ensure)
-  (add-hook 'eglot-managed-mode-hook (lambda () (eldoc-mode -1))))
-  ;(add-hook 'tuareg-mode 'eglot-ensure)
+  (add-hook 'tsx-ts-mode-hook 'eglot-ensure))
 
 (use-package rainbow-delimiters
   :hook c++-ts-mode
@@ -113,9 +112,9 @@
 
 (use-package corfu
   ;; Optional customizations
-  ;; :custom
+  :custom
   ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-  ;; (corfu-auto t)                 ;; Enable auto completion
+  (corfu-auto t)                    ;; Enable auto completion
   ;; (corfu-separator ?\s)          ;; Orderless field separator
   ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
   ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
@@ -248,6 +247,10 @@
    consult-buffer consult-grep
    consult-git-grep consult-ripgrep
    :preview-key nil)
+
+  ;; TODO want to disable vertico--allow-prompt in buffer selection
+  ;; TODO want to select a different starting index in consult-buffer: show
+  ;; other open buffers above the first choice
 
   ;; Optionally configure the narrowing key.
   ;; Both < and C-+ work reasonably well.
