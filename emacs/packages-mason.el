@@ -110,20 +110,41 @@
   (setq vertico-cycle t)
   )
 
-(use-package corfu
-  ;; Optional customizations
-  :custom
-  ;; (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
-  (corfu-auto t)                    ;; Enable auto completion
-  ;; (corfu-separator ?\s)          ;; Orderless field separator
-  ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
-  ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
-  ;; (corfu-preview-current nil)    ;; Disable current candidate preview
-  ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
-  ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
-  ;; (corfu-scroll-margin 5)        ;; Use scroll margin
-  :init
-  (global-corfu-mode))
+;; (use-package corfu
+;;   ;; Optional customizations
+;;   :custom
+;;   (corfu-cycle t)                   ;; Enable cycling for `corfu-next/previous'
+;;   ;; (corfu-auto t)                 ;; Enable auto completion
+;;   ;; (corfu-separator ?\s)          ;; Orderless field separator
+;;   ;; (corfu-quit-at-boundary nil)   ;; Never quit at completion boundary
+;;   ;; (corfu-quit-no-match nil)      ;; Never quit, even if there is no match
+;;   ;; (corfu-preview-current nil)    ;; Disable current candidate preview
+;;   ;; (corfu-preselect 'prompt)      ;; Preselect the prompt
+;;   ;; (corfu-on-exact-match nil)     ;; Configure handling of exact matches
+;;   ;; (corfu-scroll-margin 5)        ;; Use scroll margin
+;;   ;; :init
+;;   ;; (global-corfu-mode)
+;;   :hook
+;;   ((c++-ts-mode)
+;;    (tsx-ts-mode)
+;;    (typescript-ts-mode)
+;;    (tuareg-mode))
+;;   :bind
+;;   (:map corfu-map
+;;         ;; Unbind RET
+;;         ("RET" . nil)
+;;         ;; TAB-and-Go
+;;         ("TAB" . corfu-next)
+;;         ([tab] . corfu-next)
+;;         ("S-TAB" . corfu-previous)
+;;         ([backtab] . corfu-previous)))
+
+;; (use-package corfu-candidate-overlay
+;;   :after corfu
+;;   :hook
+;;   (corfu-mode)
+;;   :bind
+;;   ("C-<tab>" . completion-at-point))
 
 ;; A few more useful configurations for vertico and corfu...
 (use-package emacs
@@ -151,6 +172,9 @@
 
   ;; Enable recursive minibuffers
   (setq enable-recursive-minibuffers t)
+
+  ;; tab first indents, then tries to complete
+  ;; (setq tab-always-indent 'complete)
 
   ;; TAB cycle if there are only few candidates
   (setq completion-cycle-threshold 3))
@@ -303,6 +327,28 @@
 (use-package embark-consult
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
+
+(use-package company
+  :custom
+  (company-idle-delay
+   (lambda () (if (company-in-string-or-comment) nil 0.2)))
+  (company-selection-wrap-around t)
+  (company-tooltip-limit 4)
+  (company-tooltip-flip-when-above t)
+  (company-tooltip-minimum-width 30)
+  (company-tooltip-maximum-width 30)
+  (company-frontends
+   '(company-pseudo-tooltip-unless-just-one-frontend
+     company-preview-if-just-one-frontend
+     company-echo-metadata-frontend))
+  (company-format-margin-function #'company-text-icons-margin)
+  (company-text-icons-format "%s ")
+  ;; TODO consider using company-echo-strip-common-frontent
+  :hook
+  ((c++-ts-mode)
+   (tsx-ts-mode)
+   (typescript-ts-mode)
+   (tuareg-mode)))
 
 ;; TODO try crux
 
