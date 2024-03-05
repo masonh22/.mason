@@ -12,7 +12,7 @@
 
 ;; closing a client instance that started on a file won't kill that buffer
 ;; TODO make sure C-x # still kills that buffer!
-(setq server-kill-new-buffers nil)
+;; (setq server-kill-new-buffers nil)
 
 ;; use a visible bell instead of an audible one
 (setq visible-bell 1)
@@ -117,9 +117,6 @@
 
 ;; Always load newest byte code
 (setq load-prefer-newer t)
-
-;; tab first indents, then tries to complete
-;; (setq tab-always-indent 'complete)
 
 ;; isearch
 (setq search-whitespace-regexp ".*?")
