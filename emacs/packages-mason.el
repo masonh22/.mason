@@ -47,7 +47,9 @@
   :config
   (global-hl-todo-mode +1)
   (add-to-list 'hl-todo-keyword-faces
-               '("MASON" . "#cc9393")))
+               '("MASON" . "#cc9393"))
+  (add-to-list 'hl-todo-keyword-faces
+               '("JMH" . "#cc9393")))
 
 ;; eglot TODO use-package, but straight.el clones this...
 (unless (version< emacs-version "29.1")
