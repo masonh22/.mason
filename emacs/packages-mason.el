@@ -335,8 +335,9 @@
   (company-selection-wrap-around t)
   (company-tooltip-limit 4)
   (company-tooltip-flip-when-above t)
-  (company-tooltip-minimum-width 30)
-  (company-tooltip-maximum-width 30)
+  ;; (company-tooltip-minimum-width 30)
+  ;; (company-tooltip-maximum-width 30)
+  (company-tooltip-width-grow-only)
   (company-frontends
    '(company-pseudo-tooltip-unless-just-one-frontend
      company-preview-if-just-one-frontend

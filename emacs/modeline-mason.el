@@ -49,7 +49,7 @@ The current buffer is propertized with 'mode-line-buffer-id' face.")
                     ((derived-mode-p 'text-mode) "§")
                     ((derived-mode-p 'prog-mode) "λ")
                     ((derived-mode-p 'comint-mode) ">_")
-                    (t "∘"))))
+                    (t "o"))))
     (propertize indicator 'face 'shadow)))
 
 (defvar-local mason-major-mode
