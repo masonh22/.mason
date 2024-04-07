@@ -168,10 +168,10 @@ function install_copies {
                 ;;
             B)
                 default_action='b'
-                do_op mv "$new_name" "${new_name}.bak"
+                do_op mv "$dst" "${dst}.bak"
                 ;;
             b)
-                do_op mv "$new_name" "${new_name}.bak"
+                do_op mv "$dst" "${dst}.bak"
                 ;;
             s|*)
                 # skip by default
