@@ -26,7 +26,11 @@ HISTFILESIZE=100000000
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;31:locus=01:quote=01'
 export GREP_COLORS="mt=01;32" # Matching text in bold green.
 
-export EDITOR='emacsclient --alternate-editor="" -nw'
+if type emacs > /dev/null 2>&1; then
+    export EDITOR='emacsclient --alternate-editor="" -nw'
+else
+    export EDITOR=nano
+fi
 
 # opam configuration
 test -r ${HOME}/.opam/opam-init/init.sh && . ${HOME}/.opam/opam-init/init.sh > /dev/null 2> /dev/null || true
