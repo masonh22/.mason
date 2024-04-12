@@ -63,6 +63,11 @@ if [ -d "$HOME/.local/bin" ]; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
+# GNU which, if available. This check is good enough for now...
+if which -v > /dev/null 2>&1; then
+    alias which="alias | $(which which) --tty-only --read-alias --show-dot --show-tilde"
+fi
+
 # disable backup files for GNU utilities
 export VERSION_CONTROL="never"
 

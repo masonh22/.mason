@@ -6,9 +6,13 @@
 ;; disable tool bar and scroll bar
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
+(menu-bar-mode -1)
 
 ;; disable backup files
 (setq make-backup-files nil)
+
+;; use utf-8 in terminals
+(set-terminal-coding-system 'utf-8)
 
 ;; closing a client instance that started on a file won't kill that buffer
 ;; TODO make sure C-x # still kills that buffer!
