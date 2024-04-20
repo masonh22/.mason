@@ -1,8 +1,3 @@
-# only do this once
-if [ -n "${MASON_ENV_INIT_COMPLETE}" ]; then
-    return 0
-fi
-
 set -o ignoreeof
 
 # check the window size after each command and, if necessary,
@@ -30,6 +25,19 @@ if type emacs > /dev/null 2>&1; then
     export EDITOR='emacsclient --alternate-editor="" -nw'
 else
     export EDITOR=nano
+fi
+
+# GNU which, if available. This check is good enough for now...
+if which -v > /dev/null 2>&1; then
+    alias which="alias | $(which which) --tty-only --read-alias --show-dot --show-tilde"
+fi
+
+# disable backup files for GNU utilities
+export VERSION_CONTROL="never"
+
+# only do next part once
+if [ -n "${MASON_ENV_INIT_COMPLETE}" ]; then
+    return 0
 fi
 
 # opam configuration
@@ -62,13 +70,5 @@ fi
 if [ -d "$HOME/.local/bin" ]; then
     PATH="$HOME/.local/bin:$PATH"
 fi
-
-# GNU which, if available. This check is good enough for now...
-if which -v > /dev/null 2>&1; then
-    alias which="alias | $(which which) --tty-only --read-alias --show-dot --show-tilde"
-fi
-
-# disable backup files for GNU utilities
-export VERSION_CONTROL="never"
 
 MASON_ENV_INIT_COMPLETE=true
