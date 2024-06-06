@@ -20,8 +20,7 @@ function success {
 }
 
 function fail {
-    printf "\r\033[2K  [\033[0;31mFAIL\033[0m] $@\n"
-    echo ''
+    printf "\r\033[2K  [\033[0;31mFAIL\033[0m] $@\n" 1>&2
 }
 
 function do_op {
@@ -231,7 +230,7 @@ function add_to_emacs {
         return 1
     fi
 
-    EMACS_HOME=$(get_emacs_home)
+    EMACS_HOME="$(get_emacs_home)"
     ret=$?
     if [ $ret != 0 ]; then
         return $ret

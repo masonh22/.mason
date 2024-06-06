@@ -10,7 +10,7 @@ cd $MASON_HOME
 echo ''
 
 function setup_emacs_early_init {
-    EMACS_HOME=$(get_emacs_home)
+    EMACS_HOME="$(get_emacs_home)"
     ret=$?
     if [ $ret != 0 ]; then
         return $ret
