@@ -378,9 +378,10 @@
 (use-package rust-mode
   :init
   (setq rust-mode-treesitter-derive t)
-  (add-to-list 'eglot-server-programs
-               '((rust-ts-mode) . ("rust-analyzer" :initializationOptions
-                                   (:check (:command "clippy")))))
+  (unless (version< emacs-version "29.1")
+    (add-to-list 'eglot-server-programs
+                 '((rust-ts-mode) . ("rust-analyzer" :initializationOptions
+                                     (:check (:command "clippy"))))))
   :custom
   (rust-indent-offset 2)
   :hook

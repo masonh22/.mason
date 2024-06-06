@@ -5,8 +5,9 @@
 
 ;; disable tool bar and scroll bar
 (when (fboundp 'tool-bar-mode) ;; not available on nox
-    (tool-bar-mode -1))
-(scroll-bar-mode -1)
+  (tool-bar-mode -1))
+(when (fboundp 'scroll-bar-mode) ;; not available on nox
+  (scroll-bar-mode -1))
 (menu-bar-mode -1)
 
 ;; disable backup files
