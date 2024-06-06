@@ -409,8 +409,8 @@
   (c-ts-mode . hc-highlight-trailing-whitespace)
   (tuareg-mode . hc-highlight-tabs)
   (tuareg-mode . hc-highlight-trailing-whitespace)
-  (rust-mode . hc-highlight-tabs)
-  (rust-mode . hc-highlight-trailing-whitespace)
+  (rust-ts-mode . hc-highlight-tabs)
+  (rust-ts-mode . hc-highlight-trailing-whitespace)
   (shell-script-mode . hc-highlight-tabs)
   (shell-script-mode . hc-highlight-trailing-whitespace))
 
