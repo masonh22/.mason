@@ -22,7 +22,6 @@ function success {
 function fail {
     printf "\r\033[2K  [\033[0;31mFAIL\033[0m] $@\n"
     echo ''
-    exit 1
 }
 
 function do_op {
@@ -229,6 +228,7 @@ function add_to_emacs {
     EMACS_PACKAGE_NAME=$1
     if [ -z "${EMACS_PACKAGE_NAME}" ]; then
         echo 'Usage: add_to_emacs <package-name>'
+        return 1
     fi
 
     EMACS_HOME=$(get_emacs_home)
