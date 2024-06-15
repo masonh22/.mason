@@ -52,25 +52,45 @@
   (add-to-list 'hl-todo-keyword-faces
                '("JMH" . "#cc9393")))
 
-;; eglot TODO use-package, but straight.el clones this...
 (unless (version< emacs-version "29.1")
-  (require 'eglot)
-  (add-to-list 'eglot-server-programs
-               '((c++-mode c-mode) . ("clangd" "--header-insertion=never")))
-  (setq eglot-ignored-server-capabilities
-        '(:hoverProvider
-          :inlayHintProvider))
-  (add-hook 'c-ts-mode-hook 'eglot-ensure)
-  (add-hook 'c++-ts-mode-hook 'eglot-ensure)
-  (add-hook 'typescript-ts-mode-hook 'eglot-ensure)
-  (add-hook 'tsx-ts-mode-hook 'eglot-ensure))
+  (use-package eglot
+    :straight nil
+    :defer t
+    :config
+    (add-to-list 'eglot-server-programs
+                 '((c++-mode c-mode) . ("clangd" "--header-insertion=never")))
+    (add-to-list 'eglot-server-programs
+                 '((rust-ts-mode) . ("rust-analyzer" :initializationOptions
+                                     (:check (:command "clippy")))))
+    :custom
+    (eglot-ignored-server-capabilities
+     '(:hoverProvider
+       :inlayHintProvider))
+    :hook
+    ((c-ts-mode . eglot-ensure)
+     (c++-ts-mode . eglot-ensure)
+     (typescript-ts-mode . eglot-ensure)
+     (tsx-ts-mode . eglot-ensure)
+     (rust-ts-mode . eglot-ensure)))
+
+  (use-package treesit
+    :straight nil
+    :custom
+    (treesit-font-lock-level 3))
+
+  (use-package treesit-auto
+    :custom
+    (treesit-auto-install 'prompt)
+    :config
+    (treesit-auto-add-to-auto-mode-alist 'all)
+    (global-treesit-auto-mode)))
 
 (use-package rainbow-delimiters
-  :hook c++-ts-mode
-  :hook c-ts-mode
-  :hook emacs-lisp-mode ; TODO emacs-lisp-mode or tuareg?
-  :hook tsx-ts-mode
-  :hook typescript-ts-mode)
+  :hook (c++-ts-mode
+         c-ts-mode
+         emacs-lisp-mode ; TODO emacs-lisp-mode or tuareg?
+         tsx-ts-mode
+         typescript-ts-mode))
 
 (use-package undo-tree
   :init
@@ -374,19 +394,8 @@
   ;;       ("C-c p" . projectile-command-map))
   )
 
-(use-package haskell-mode)
-
-(use-package rust-mode
-  :init
-  (setq rust-mode-treesitter-derive t)
-  (unless (version< emacs-version "29.1")
-    (add-to-list 'eglot-server-programs
-                 '((rust-ts-mode) . ("rust-analyzer" :initializationOptions
-                                     (:check (:command "clippy"))))))
-  :custom
-  (rust-indent-offset 2)
-  :hook
-  (rust-ts-mode . eglot-ensure))
+(use-package haskell-mode
+  :defer t)
 
 ;; Major mode for OCaml programming
 (use-package tuareg
