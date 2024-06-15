@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (provide 'setup-mason)
 
 ;; This includes all necessary config modules

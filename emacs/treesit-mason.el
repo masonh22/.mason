@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (provide 'treesit-mason)
 
 (when (version<= emacs-version "29.1")

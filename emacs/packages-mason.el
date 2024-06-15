@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (provide 'packages-mason)
 
 ;; Use straight.el

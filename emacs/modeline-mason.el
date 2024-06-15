@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (provide 'modeline-mason)
 
 ;; Default mode-line

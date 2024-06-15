@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (provide 'config-mason)
 
 ;; disable splash screen
