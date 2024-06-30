@@ -1,6 +1,8 @@
+#!/bin/bash
 # Inspired by https://github.com/holman/dotfiles bootstrap script
 
 INSTALL_HOME=$1
+shift
 
 if [ -z "$INSTALL_HOME" ]; then
     echo 'install-utils must be given the root of the project as an argument'
@@ -28,8 +30,35 @@ function do_op {
     $@ || exit
 }
 
+init_default_action=;
+no_prompt=false
+while [ $# -gt 0 ]; do
+    case $1 in
+        -d|--default-action)
+            shift
+            case $1 in
+                S|s|O|o|B|b)
+                    init_default_action=$1
+                    ;;
+                *)
+                    fail "Invalid default action '$1' (must be s|o|b)"
+                    exit 1
+                    ;;
+            esac
+            ;;
+        --no-prompt)
+            no_prompt=true
+            ;;
+        *)
+            fail "Unknown option '$1'"
+            exit 1
+            ;;
+    esac
+    shift
+done
+
 function setup_gitconfig {
-    if [ ! -f git/.gitconfig.local.symlink.home ]; then
+    if ! $no_prompt && [ ! -f git/.gitconfig.local.symlink.home ]; then
         info 'setup gitconfig'
         user ' - Enter git author name'
         read -e git_name
@@ -105,7 +134,7 @@ function install_symlink {
 function install_symlinks {
     info 'installing symlinks'
 
-    default_action=
+    default_action=$init_default_action
 
     for src in $(find $INSTALL_HOME \( -name .git -o -name emacs \) -prune -o -name '*.symlink.*' -print); do
         # files are named <file>.symlink.<rootdir> and get installed in
@@ -125,7 +154,7 @@ function install_symlinks {
 function install_copies {
     info 'copying files'
 
-    default_action=
+    default_action=$init_default_action
 
     for src in $(find $INSTALL_HOME \( -name .git -o -name emacs \) -prune -o -name '*.copy.*' -print); do
         # files are named <file>.copy.<rootdir> and get copied in
@@ -194,8 +223,12 @@ function add_to_bashrc {
     fi
 
     if ! grep "${ENV_HOME_NAME}" ${HOME}/.bashrc > /dev/null 2>&1; then
-        user "Add '${ENV_HOME_NAME}' to ~/.bashrc? [Y/n]"
-        read -e yes_no
+        if $no_prompt; then
+            yes_no=y
+        else
+            user "Add '${ENV_HOME_NAME}' to ~/.bashrc? [Y/n]"
+            read -e yes_no
+        fi
         case "$yes_no" in
             n*|N*)
                 success 'Skipped modifying ~/.bashrc'
@@ -237,8 +270,12 @@ function add_to_emacs {
     fi
 
     if ! grep "${EMACS_PACKAGE_NAME}" ${EMACS_HOME}/init.el > /dev/null 2>&1; then
-        user "Add package '${EMACS_PACKAGE_NAME}' to ${EMACS_HOME}/init.el? [Y/n]"
-        read -e yes_no
+        if $no_prompt; then
+            yes_no=y
+        else
+            user "Add package '${EMACS_PACKAGE_NAME}' to ${EMACS_HOME}/init.el? [Y/n]"
+            read -e yes_no
+        fi
         case "$yes_no" in
             n*|N*)
                 success "Skipped modifying ${EMACS_HOME}/init.el"
