@@ -251,8 +251,8 @@ function get_emacs_home {
     elif [ -d "${HOME}/.emacs.d" ]; then
         echo "${HOME}/.emacs.d"
     else
-        fail 'Cannot find emacs configuration directory.'
-        return 1
+        mkdir -p "${HOME}/.config/emacs"
+        echo "${HOME}/.config/emacs"
     fi
 }
 
