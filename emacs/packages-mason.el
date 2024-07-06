@@ -95,11 +95,12 @@
     (global-treesit-auto-mode)))
 
 (use-package rainbow-delimiters
-  :hook (c++-ts-mode
-         c-ts-mode
-         emacs-lisp-mode ; TODO emacs-lisp-mode or tuareg?
-         tsx-ts-mode
-         typescript-ts-mode))
+  :hook
+  ((c++-ts-mode
+    c-ts-mode
+    emacs-lisp-mode ; TODO emacs-lisp-mode or tuareg?
+    tsx-ts-mode
+    typescript-ts-mode) . rainbow-delimiters-mode))
 
 (use-package undo-tree
   :init
