@@ -94,6 +94,12 @@
                   :ext "\\.cpp\\'"))
     (global-treesit-auto-mode)))
 
+(use-package flymake
+  :straight nil
+  :bind
+  ("M-n" . 'flymake-goto-next-error)
+  ("M-p" . 'flymake-goto-prev-error))
+
 (use-package rainbow-delimiters
   :hook
   ((c++-ts-mode
