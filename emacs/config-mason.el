@@ -19,7 +19,7 @@
     (progn (modus-themes-load-theme 'modus-vivendi-tinted)
            (setq modus-themes-to-toggle
                  '(modus-operandi-tinted modus-vivendi-tinted)))
-    (modus-themes-load-theme 'modus-vivendi)
+    (load-theme 'modus-vivendi :no-confirm)
     (setq modus-themes-to-toggle '(modus-operandi modus-vivendi))))
 
 ;; use utf-8 in terminals
