@@ -31,10 +31,13 @@
 ;; - minor modes with status, like projectile project, flymake, maybe eglot
 ;;   - only show this for mode-line-window-selected-p
 
-(defun mason-buffer-id-face ()
-  (cond
-   ((mode-line-window-selected-p)
-    'mode-line-buffer-id)))
+(if (version<= "29.1" emacs-version)
+    (defun mason-buffer-id-face ()
+      (cond
+       ((mode-line-window-selected-p)
+        'mode-line-buffer-id)))
+  (defun mason-buffer-id-face ()
+    'mode-line-buffer-id))
 
 (defvar-local mason-buffer-identification
     '(:eval
@@ -119,10 +122,6 @@ The current buffer is propertized with 'mode-line-buffer-id' face.")
   "Mode line construct displaying `mode-line-misc-info'.
 Specific to the current window's mode line.")
 
-(when (version< emacs-version "30")
-  (defvar-local mode-line-format-right-align "")
-  (put 'mode-line-format-right-align 'risky-local-variable t))
-
 (dolist (construct '(mason-buffer-identification
                      mason-major-mode
                      mason-process
@@ -133,7 +132,10 @@ Specific to the current window's mode line.")
                      ))
   (put construct 'risky-local-variable t))
 
-(unless (version< emacs-version "30")
+(if (version< emacs-version "30")
+    (progn
+      (defvar-local mode-line-format-right-align "")
+      (put 'mode-line-format-right-align 'risky-local-variable t))
   (setq mode-line-right-align-edge 'right-margin))
 
 (defvar-local mason-mode-line
