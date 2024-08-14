@@ -421,6 +421,10 @@
 ;; Major mode for editing Dune project files
 (use-package dune)
 
+(use-package rust-mode
+  :init
+  (setq rust-mode-treesitter-derive t))
+
 ;; highlight chars
 (use-package highlight-chars
   :hook
