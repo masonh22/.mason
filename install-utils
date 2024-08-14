@@ -1,4 +1,3 @@
-#!/bin/bash
 # Inspired by https://github.com/holman/dotfiles bootstrap script
 
 INSTALL_HOME=$1

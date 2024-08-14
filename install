@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 MASON_HOME=$(dirname $0) # may be relative
 MASON_HOME=$(readlink -f $MASON_HOME) # now it is absolute

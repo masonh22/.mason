@@ -1,4 +1,3 @@
-#!/bin/bash
 current_prompt_style=""
 
 __PS1=${PS1}
