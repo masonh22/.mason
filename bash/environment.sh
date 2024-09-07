@@ -27,11 +27,6 @@ else
     export EDITOR=nano
 fi
 
-# GNU which, if available. This check is good enough for now...
-if which -v > /dev/null 2>&1; then
-    alias which="alias | $(which which) --tty-only --read-alias --show-dot --show-tilde"
-fi
-
 # disable backup files for GNU utilities
 export VERSION_CONTROL="never"
 
@@ -77,6 +72,11 @@ fi
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/.local/bin" ]; then
     PATH="$HOME/.local/bin:$PATH"
+fi
+
+# GNU which, if available. This check is good enough for now...
+if which -v > /dev/null 2>&1 && ! alias which > /dev/null 2>&1; then
+    alias which="alias | $(which which) --tty-only --read-alias --show-dot --show-tilde"
 fi
 
 MASON_ENV_INIT_COMPLETE=true
