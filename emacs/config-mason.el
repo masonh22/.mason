@@ -85,8 +85,9 @@
       scroll-margin 2
       scroll-conservatively 100000)
 
-(when (fboundp 'pixel-scroll-precision-mode)
-  (pixel-scroll-precision-mode t))
+;; Smooth-scrolling
+;; (when (version<= "29" emacs-version)
+;;   (pixel-scroll-precision-mode t))
 
 ;; keybindings
 (global-set-key (kbd "C-c r") 'replace-string)
