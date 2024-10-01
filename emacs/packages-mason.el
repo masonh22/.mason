@@ -409,6 +409,7 @@
 
 ;; Major mode for OCaml programming
 (use-package tuareg
+  :defer t
   :mode
   ("\\.ocamlinit\\'" . tuareg-mode)
   :config ; TODO custom doesn't work here for some reason
@@ -419,9 +420,11 @@
   (tuareg-mode . eglot-ensure))
 
 ;; Major mode for editing Dune project files
-(use-package dune)
+(use-package dune
+  :defer t)
 
 (use-package rust-mode
+  :defer t
   :init
   (setq rust-mode-treesitter-derive t))
 
