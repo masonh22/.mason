@@ -1,16 +1,21 @@
 [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env"
 
-for f in ${MASON_HOME}/bash/*sh
-do
+# Load common configuration files
+for f in ${MASON_HOME}/shell/*.sh; do
     [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env $f"
     source $f
 done
 
-if [ -x "$(command -v git)" ]; then
-    [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) prompt"
-    prompt git > /dev/null
-else
-    prompt simple > /dev/null
+if [ -n "${BASH_VERSION}" ]; then
+    for f in ${MASON_HOME}/bash/*.bash; do
+        [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env $f"
+        source $f
+    done
+elif [ -n "${ZSH_VERSION}" ]; then
+    for f in ${MASON_HOME}/zsh/*.zsh; do
+        [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env $f"
+        source $f
+    done
 fi
 
 [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env done"

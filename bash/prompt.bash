@@ -45,7 +45,7 @@ function prompt() {
     current_time='\t'
     current_dir='\w'
 
-    fancy_hostname='if [ ! -z "${IS_SSH}"  ]; then if type color_text > /dev/null 2>&1; then echo "$(color_text @$(hostname | cut -d "." -f 1))"; else echo "@$(hostname)"; fi; fi'
+    fancy_hostname="$(if [ -n "${IS_SSH}" ]; then if type color_text > /dev/null 2>&1; then echo "$(color_text @$(hostname | cut -d "." -f 1))"; else echo "@$(hostname)"; fi; fi)"
     opam_switch='$(color_text "($(opam switch show))")'
     fancy_username='if type color_text >> /dev/null 2>&1; then color_text $(whoami); else echo "\u"; fi'
     fancy_cursor='\e[?6;0;13;c'
@@ -71,7 +71,7 @@ function prompt() {
             ;;
         git|default|mason)
             __BRACKET_DEFAULT='\e[0m' # no formatting
-            __PS1="\$(${bracket_color})[${bright_magenta}${current_time} \$(${fancy_username})\$(${fancy_hostname}) ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
+            __PS1="\$(${bracket_color})[${bright_magenta}${current_time} \$(${fancy_username})${fancy_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
             ;;
         opam|ocaml)
             __BRACKET_DEFAULT='\e[90m' # bright black
@@ -80,7 +80,7 @@ function prompt() {
         full)
             # same as opam but with hostname
             __BRACKET_DEFAULT='\e[90m' # bright black
-            __PS1="\$(${bracket_color})[${bright_magenta}${current_time} ${opam_switch} \$(${fancy_username})\$(${fancy_hostname}) ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
+            __PS1="\$(${bracket_color})[${bright_magenta}${current_time} ${opam_switch} \$(${fancy_username})${fancy_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
             ;;
         *)
             >&2 echo "Unknown prompt preset \"$1\""
@@ -96,3 +96,9 @@ function _prompt_list() {
     COMPREPLY=( $(compgen -W "$prompts" $cur) )
 }
 complete -o default -F _prompt_list prompt
+
+if [ -x "$(command -v git)" ]; then
+    prompt git > /dev/null
+else
+    prompt simple > /dev/null
+fi

@@ -8,13 +8,6 @@ if [ -x /usr/bin/dircolors ]; then
     alias egrep='egrep --color=auto'
 fi
 
-# emacs
-alias e='emacsclient --alternate-editor="" --create-frame'
-alias eeval='emacsclient --eval'
-alias eping='eeval "(+ 8 34)"'
-alias estop='eeval "(save-buffers-kill-emacs)"'
-alias ekill='eeval "(kill-emacs)"'
-
 alias bashrc='emacs -nw -Q ~/.bashrc -nw ; . ~/.bashrc'
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
@@ -23,10 +16,6 @@ alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo
 alias ll='ls -alhF'
 alias la='ls -A'
 alias l='ls -CF'
-# commands
-alias fd='fd --hidden'
-alias rg='rg --with-filename --no-heading --hidden'
-alias rm='rm -v'
 
 # display an alert every 20 minutes to look away
 function save-my-eyes() {
