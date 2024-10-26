@@ -143,3 +143,34 @@
       isearch-lazy-count t
       lazy-count-prefix-format "(%s/%s) "
       lazy-count-suffix-format nil)
+
+;; *org* buffer
+(defcustom initial-org-message (purecopy "\
+#+title: Scratch buffer
+
+")
+  "Initial message displayed in the *org* buffer at startup.
+If this is nil, no message will be displayed.")
+
+(defun get-org-buffer-create ()
+  "Return an *org* buffer, creating a new one if needed."
+  (or (get-buffer "*org*")
+      (let ((org-buffer (get-buffer-create "*org*")))
+        (with-current-buffer org-buffer
+          (when initial-org-message
+            (insert initial-org-message)
+            (set-buffer-modified-p nil))
+          (org-mode))
+        org-buffer)))
+
+(defun init-org-buffer ()
+  "Create the *org* buffer if it doesn't exist and switch to it if the
+current buffer is *scratch*.
+
+This is useful for changing the 'default' buffer from *scratch* to *org*."
+  (let ((org-buffer (get-org-buffer-create)))
+    (when (string= (buffer-name) "*scratch*")
+      (switch-to-buffer org-buffer))))
+
+(add-hook 'after-init-hook
+          'init-org-buffer)
