@@ -214,34 +214,44 @@ function install_copies {
     done
 }
 
-function add_to_bashrc {
-    ENV_HOME_NAME=$1
-    if [ -z "${ENV_HOME_NAME}" ]; then
-        echo 'Usage: add_to_bashrc <project-name>'
+function add_to_rc {
+    ENV_NAME="$1"
+    ENV_HOME_NAME="$2"
+    if [ -z "${ENV_NAME}" ] || [ -z "${ENV_HOME_NAME}" ]; then
+        echo 'Usage: add_to_rc <rc_name> <project-name>'
         return 1
     fi
 
-    if ! grep "${ENV_HOME_NAME}" ${HOME}/.bashrc > /dev/null 2>&1; then
+    if ! grep "${ENV_HOME_NAME}" "${HOME}/${ENV_NAME}" > /dev/null 2>&1; then
         if $no_prompt; then
             yes_no=y
         else
-            user "Add '${ENV_HOME_NAME}' to ~/.bashrc? [Y/n]"
+            user "Add '${ENV_HOME_NAME}' to ~/${ENV_NAME}? [Y/n]"
             read -e yes_no
         fi
         case "$yes_no" in
             n*|N*)
-                success 'Skipped modifying ~/.bashrc'
+                success "Skipped modifying ~/${ENV_NAME}"
                 ;;
             *)
-                echo '' >> ${HOME}/.bashrc
-                echo "export ${ENV_HOME_NAME}=${INSTALL_HOME}" >> ${HOME}/.bashrc
-                echo "source \${${ENV_HOME_NAME}}/env" >> ${HOME}/.bashrc
-                success 'Modified ~/.bashrc'
+                echo '' >> ${HOME}/${ENV_NAME}
+                echo "export ${ENV_HOME_NAME}=${INSTALL_HOME}" >> ${HOME}/${ENV_NAME}
+                echo "source \${${ENV_HOME_NAME}}/env" >> ${HOME}/${ENV_NAME}
+                success "Modified ~/${ENV_NAME}"
                 ;;
         esac
     else
-        success '.bashrc is already configured'
+        success "~/${ENV_NAME} is already configured"
     fi
+}
+
+function add_to_bashrc {
+    if [ -z "$1" ]; then
+        echo 'Usage: add_to_bashrc <project-name>'
+        return 1
+    fi
+
+    add_to_rc .bashrc "$1"
 }
 
 function get_emacs_home {

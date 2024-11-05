@@ -27,3 +27,5 @@ install_copies
 install_symlinks
 add_to_emacs setup-mason
 setup_emacs_early_init
+add_to_rc .bashrc 'MASON_HOME'
+add_to_rc .zshrc 'MASON_HOME'

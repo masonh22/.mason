@@ -26,6 +26,3 @@ if ! shopt -oq posix; then
         . /etc/bash_completion
     fi
 fi
-
-export MASON_HOME=${HOME}/.mason
-source ${MASON_HOME}/env
