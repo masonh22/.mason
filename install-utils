@@ -56,20 +56,6 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-function setup_gitconfig {
-    if ! $no_prompt && [ ! -f git/.gitconfig.local.symlink.home ]; then
-        info 'setup gitconfig'
-        user ' - Enter git author name'
-        read -e git_name
-        user ' - Enter git author email'
-        read -e git_email
-
-        sed -e "s/TEMPLATE_NAME/$git_name/" -e "s/TEMPLATE_EMAIL/$git_email/" git/gitconfig.local.base > git/.gitconfig.local.symlink.home || exit
-
-        success 'gitconfig'
-    fi
-}
-
 function install_symlink {
     if [ "$#" != 2 ]; then
         fail 'Internal error: install_symlink requires two arguments'
@@ -97,7 +83,7 @@ function install_symlink {
     case "$action" in
         clean)
         # do nothing
-        ;;
+            ;;
         S)
             default_action='s'
             skip=true

@@ -9,6 +9,30 @@ cd $MASON_HOME
 
 echo ''
 
+function setup_gitconfig {
+    if ! $no_prompt && [ ! -f git/.gitconfig.local.copy.home ]; then
+        user 'setup .gitconfig? y/N'
+        read -e do_gitconfig
+        case "$do_gitconfig" in
+            y*|Y*)
+                # continue
+                ;;
+            *)
+                return
+                ;;
+        esac
+
+        user ' - Enter git author name'
+        read -e git_name
+        user ' - Enter git author email'
+        read -e git_email
+
+        sed -e "s/TEMPLATE_NAME/$git_name/" -e "s/TEMPLATE_EMAIL/$git_email/" git/gitconfig.local.base > git/.gitconfig.local.copy.home || exit
+
+        success 'gitconfig'
+    fi
+}
+
 function setup_emacs_early_init {
     EMACS_HOME="$(get_emacs_home)"
     ret=$?
