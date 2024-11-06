@@ -425,8 +425,8 @@
 
 (use-package rust-mode
   :defer t
-  :init
-  (setq rust-mode-treesitter-derive t))
+  :config
+  (rust-mode-treesitter-derive t))
 
 ;; highlight chars
 (use-package highlight-chars
