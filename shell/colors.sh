@@ -1,7 +1,7 @@
 # NOTE: I did not author this file. I borrowed it from a coworker.
 
 # Returns 0 iff the color is good
-function color_is_good_for_prompt {
+color_is_good_for_prompt() {
     input_color="$1"
     bad_colors="0 7 15 16 17 18 19 20 195 187 224 225 230 231 232 233 234 235 236 \
 237 238 239 240 241 242 252 253 254 255"
@@ -13,7 +13,7 @@ function color_is_good_for_prompt {
     return 0 # show it
 }
 
-function good_color_for_number {
+good_color_for_number() {
     color=$1
     if color_is_good_for_prompt $color; then
         # the 38 (48) is for foreground (background), but not sure what the 5 is for
@@ -34,7 +34,7 @@ function good_color_for_number {
     fi
 }
 
-function choose_color {
+choose_color() {
     text="$1"
     case $text in # special cases
         laptop)
@@ -53,7 +53,7 @@ function choose_color {
     esac
 }
 
-function color_text {
+color_text() {
     if [ -z "$1" ] ; then
         echo ""
         return 0
@@ -61,14 +61,14 @@ function color_text {
     echo -e "\e[$(choose_color $1)m$1\e[0m"
 }
 
-function _show_color_with_name {
+_show_color_with_name() {
     color_name=$1
     number=$2
     printf "%s => \e[%sm%s\e[0m\n" \
            $number $number $color_name
 }
 
-function show_colors {
+show_colors() {
     case $1 in
         basic)
             eight_bit_colors=(black red green yellow blue magenta cyan white)
