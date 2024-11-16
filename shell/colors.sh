@@ -14,10 +14,10 @@ color_is_good_for_prompt() {
 }
 
 good_color_for_number() {
-    color=$1
-    if color_is_good_for_prompt $color; then
+    input_color=$1
+    if color_is_good_for_prompt $input_color; then
         # the 38 (48) is for foreground (background), but not sure what the 5 is for
-        echo -n "38;5;${color}"
+        echo -n "38;5;${input_color}"
         return
     else
         # Try agian by hashing the hash and the text.
@@ -29,7 +29,7 @@ good_color_for_number() {
         else
             # go back to the original hash
             # just use a basic color
-            echo -n "$((32 + ${color} % 5))"
+            echo -n "$((32 + ${input_color} % 5))"
         fi
     fi
 }

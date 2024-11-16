@@ -6,16 +6,18 @@ precmd_functions+=( precmd_vcs_info )
 setopt prompt_subst
 zstyle ':vcs_info:git:*' formats '(%b)'
 
-# TODO integrate colors.bash
 function prompt {
     local NEWLINE=$'\n'
 
-    local username='%F{green}%n%f'
-    local hostname="$(if [ -n "${IS_SSH}" ]; then echo '%F{yellow}@%m%f'; fi)"
+    local bright_magenta="$(echo -e '\e[95m')"
+    local bright_cyan="$(echo -e '\e[96m')"
+
+    local username="$(color_text $(whoami))"
+    local hostname="$(if [ -n "${IS_SSH}" ]; then echo "$(color_text @$(hostname | cut -d "." -f 1))"; fi)"
     local left_bracket='%(?..%F{red})[%f'
     local right_bracket='%(?..%F{red})]%f'
-    local timestamp='%F{magenta}%*%f'
-    local dir='%F{cyan}%~%f'
+    local timestamp="${bright_magenta}%*%f"
+    local dir="${bright_cyan}%~%f"
 
     PROMPT="${left_bracket}${timestamp} ${username}${hostname} ${dir}${right_bracket}${NEWLINE}%# "
     RPROMPT='${vcs_info_msg_0_} ${timestamp}'
