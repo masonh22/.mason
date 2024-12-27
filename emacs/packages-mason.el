@@ -2,8 +2,9 @@
 (provide 'packages-mason)
 
 ;; Use straight.el
-(if (version<= "25.1" emacs-version)
+(if (version<= "25.1" emacs-version) ;; TODO don't care about emacs this old...
     (progn
+      (setq straight-check-for-modifications (list 'find-when-checking))
       (defvar bootstrap-version)
       (let ((bootstrap-file
              (expand-file-name "straight/repos/straight.el/bootstrap.el"
@@ -20,7 +21,6 @@
       (when (version< emacs-version "29.1")
         ;; use-package needs to be installed on versions earlier than 29.1
         (straight-use-package 'use-package))
-      (setq straight-check-for-modifications (list 'find-when-checking))
       (setq straight-base-dir user-emacs-directory)
       (setq straight-use-package-by-default t)
       (setq straight-vc-git-default-clone-depth 1))
@@ -68,10 +68,12 @@
 
   (use-package treesit
     :straight nil
+    :defer 2
     :custom
     (treesit-font-lock-level 3))
 
   (use-package treesit-auto
+    :defer 2
     :custom
     (treesit-auto-install 'prompt)
     :config
@@ -89,11 +91,13 @@
 
 (use-package flymake
   :straight nil
+  :defer t
   :bind
   ("M-n" . 'flymake-goto-next-error)
   ("M-p" . 'flymake-goto-prev-error))
 
 (use-package rainbow-delimiters
+  :defer t
   :hook
   ((c++-ts-mode
     c-ts-mode
@@ -102,17 +106,20 @@
     typescript-ts-mode) . rainbow-delimiters-mode))
 
 (use-package undo-tree
+  :defer 1
   :init
   (global-undo-tree-mode)
   :custom
   (undo-tree-auto-save-history 'nil))
 
 (use-package ace-window
+  :defer 1
   :bind
   ("M-o" . 'ace-window))
 
 ;; Enable rich annotations using the Marginalia package
 (use-package marginalia
+  :defer 1
   ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
   ;; available in the *Completions* buffer, add it to the
   ;; `completion-list-mode-map'.
@@ -126,6 +133,7 @@
   (marginalia-mode))
 
 (use-package vertico
+  :defer 1
   :init
   (vertico-mode)
 
@@ -213,6 +221,7 @@
 
 ;; use the `orderless' completion style.
 (use-package orderless
+  :defer 1
   :init
   ;; Configure a custom style dispatcher (see the Consult wiki)
   ;; (setq orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch)
@@ -223,6 +232,7 @@
 
 ;; Example configuration for Consult
 (use-package consult
+  :defer 1
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (;; C-c bindings in `mode-specific-map'
          ("C-c M-x" . consult-mode-command)
@@ -329,6 +339,8 @@
   )
 
 (use-package embark
+  :defer t
+
   :bind
   (("C-." . embark-act)         ;; pick some comfortable binding
    ("C-;" . embark-dwim)        ;; good alternative: M-.
@@ -358,10 +370,12 @@
 
 ;; Consult users will also want the embark-consult package.
 (use-package embark-consult
+  :defer t
   :hook
   (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package company
+  :defer t
   :custom
   (company-idle-delay
    (lambda () (if (company-in-string-or-comment) nil 0.2)))
@@ -388,9 +402,11 @@
 ;; TODO try crux
 
 ;; ripgrep frontend
-(use-package rg)
+(use-package rg
+  :defer t)
 
 (use-package projectile
+  :defer 2
   :init
   (projectile-mode +1)
   :custom
@@ -428,8 +444,8 @@
   :config
   (rust-mode-treesitter-derive t))
 
-;; highlight chars
 (use-package highlight-chars
+  :defer t
   :hook
   (c++-ts-mode . hc-highlight-tabs)
   (c++-ts-mode . hc-highlight-trailing-whitespace)
@@ -443,7 +459,13 @@
   (shell-script-mode . hc-highlight-trailing-whitespace))
 
 (use-package expand-region
+  :defer 2
   :bind
   ("C-=" . er/expand-region))
 
-(use-package magit)
+(use-package magit
+  :defer t)
+
+;; emacs start-up profiler
+(use-package esup
+  :defer t)

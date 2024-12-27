@@ -1,10 +1,13 @@
 ;; -*- lexical-binding: t; -*-
 (provide 'config-mason)
 
+;; TODO a few things are slow here. I added "TODO slow" comments to them. They
+;; can be addressed by #5 here: https://blog.d46.us/advanced-emacs-startup/
+
 ;; disable splash screen
 (setq inhibit-splash-screen t)
 
-;; disable tool bar and scroll bar
+;; disable tool, scroll, and menu bars TODO slow, .02s
 (when (fboundp 'tool-bar-mode) ;; not available on nox
   (tool-bar-mode -1))
 (when (fboundp 'scroll-bar-mode) ;; not available on nox
@@ -38,7 +41,7 @@
 ;; Line numbers
 ;; (global-display-line-numbers-mode)
 
-;; always auto revert
+;; always auto revert TODO slow!
 (global-auto-revert-mode 1)
 
 ;; no tabs!
@@ -98,16 +101,15 @@
 ;; 75MB
 (setq large-file-warning-threshold 75000000)
 
-;; windmove to S-<arrow keys>
+;; windmove to S-<arrow keys> TODO slow!
 (windmove-default-keybindings)
 
 ;; OSC directory tracking
 ;; https://www.masteringemacs.org/article/running-shells-in-emacs-overview
 (add-hook 'comint-output-filter-functions #'comint-osc-process-output)
-(require 'shell) ;; TODO when do these get required?
-(require 'dirtrack)
-(shell-dirtrack-mode nil)
-(dirtrack-mode nil)
+;; TODO disable these
+;; (shell-dirtrack-mode nil)
+;; (dirtrack-mode nil)
 
 ;; smart beginning of line
 (defun smart-beginning-of-line ()
