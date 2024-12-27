@@ -2,40 +2,26 @@
 (provide 'packages-mason)
 
 ;; Use straight.el
-(if (version<= "25.1" emacs-version) ;; TODO don't care about emacs this old...
-    (progn
-      (setq straight-check-for-modifications (list 'find-when-checking))
-      (defvar bootstrap-version)
-      (let ((bootstrap-file
-             (expand-file-name "straight/repos/straight.el/bootstrap.el"
-                               user-emacs-directory))
-            (bootstrap-version 6))
-        (unless (file-exists-p bootstrap-file)
-          (with-current-buffer
-              (url-retrieve-synchronously
-               "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-               'silent 'inhibit-cookies)
-            (goto-char (point-max))
-            (eval-print-last-sexp)))
-        (load bootstrap-file nil 'nomessage))
-      (when (version< emacs-version "29.1")
-        ;; use-package needs to be installed on versions earlier than 29.1
-        (straight-use-package 'use-package))
-      (setq straight-base-dir user-emacs-directory)
-      (setq straight-use-package-by-default t)
-      (setq straight-vc-git-default-clone-depth 1))
-  ;; else
-  (require 'package)
-  (add-to-list 'package-archives '("gnu"   . "https://elpa.gnu.org/packages/"))
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-  (package-initialize)
-
-  (unless (package-installed-p 'use-package)
-    (package-refresh-contents)
-    (package-install 'use-package))
-  (eval-and-compile
-    (setq use-package-always-ensure t
-          use-package-expand-minimally t)))
+(setq straight-check-for-modifications (list 'find-when-checking))
+(setq straight-base-dir user-emacs-directory)
+(setq straight-vc-git-default-clone-depth 1)
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el"
+                         user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+(when (version< emacs-version "29.1")
+  ;; use-package needs to be installed on versions earlier than 29.1
+  (straight-use-package 'use-package))
+(setq straight-use-package-by-default t)
 
 (use-package hl-todo
   :config
