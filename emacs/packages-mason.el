@@ -59,7 +59,7 @@
     (treesit-font-lock-level 3))
 
   (use-package treesit-auto
-    :defer 2
+    ;; this cannot be deferred
     :custom
     (treesit-auto-install 'prompt)
     :config
