@@ -82,6 +82,12 @@
   ("M-n" . 'flymake-goto-next-error)
   ("M-p" . 'flymake-goto-prev-error))
 
+(use-package org
+  :straight nil
+  :custom
+  (org-directory "~/Notes/org")
+  (org-default-notes-file (concat org-directory "/notes.org")))
+
 (use-package rainbow-delimiters
   :defer t
   :hook
