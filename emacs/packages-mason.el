@@ -461,3 +461,16 @@
 ;; emacs start-up profiler
 (use-package esup
   :defer t)
+
+;; Latex setup.
+;; See https://docs.doomemacs.org/latest/modules/lang/latex/
+;; and https://michaelneuper.com/posts/efficient-latex-editing-with-emacs/
+
+(use-package auctex
+  :defer t
+  :custom
+  (TeX-auto-save t)
+  (TeX-parse-self t))
+
+(use-package latex-preview-pane
+  :defer t)
