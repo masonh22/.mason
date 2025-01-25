@@ -20,7 +20,7 @@ export CMAKE_EXPORT_COMPILE_COMMANDS=1
 # This is probably (definitely) bad, but it is so annoying to configure 24-bit
 # colors "correctly" so I'm just gonna assume that I always use a terminal that
 # supports 24-bit colors to simplify things.
-export COLORTERM=truecolor
+# export COLORTERM=truecolor
 
 # only do next part once
 if [ -n "${MASON_ENV_INIT_COMPLETE}" ]; then
