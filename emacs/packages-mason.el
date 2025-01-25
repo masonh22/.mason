@@ -436,19 +436,16 @@
   :config
   (rust-mode-treesitter-derive t))
 
-(use-package highlight-chars
-  :defer t
+(use-package whitespace
+  :ensure nil
+  :custom
+  (whitespace-style '(face trailing tabs tab-mark))
   :hook
-  (c++-ts-mode . hc-highlight-tabs)
-  (c++-ts-mode . hc-highlight-trailing-whitespace)
-  (c-ts-mode . hc-highlight-tabs)
-  (c-ts-mode . hc-highlight-trailing-whitespace)
-  (tuareg-mode . hc-highlight-tabs)
-  (tuareg-mode . hc-highlight-trailing-whitespace)
-  (rust-ts-mode . hc-highlight-tabs)
-  (rust-ts-mode . hc-highlight-trailing-whitespace)
-  (shell-script-mode . hc-highlight-tabs)
-  (shell-script-mode . hc-highlight-trailing-whitespace))
+  (c++-ts-mode
+   c-ts-mode
+   tuareg-mode
+   rust-ts-mode
+   shell-script-mode))
 
 (use-package expand-region
   :defer 2
