@@ -47,9 +47,15 @@ function setup_emacs_early_init {
 }
 
 setup_gitconfig
+
 install_copies
 install_symlinks
+
 add_to_emacs setup-mason
 setup_emacs_early_init
+
 add_to_rc .bashrc 'MASON_HOME'
 add_to_rc .zshrc 'MASON_HOME'
+
+add_to_config i3 'MASON_HOME'
+add_to_config sway 'MASON_HOME'

@@ -204,7 +204,7 @@ function add_to_rc {
     ENV_NAME="$1"
     ENV_HOME_NAME="$2"
     if [ -z "${ENV_NAME}" ] || [ -z "${ENV_HOME_NAME}" ]; then
-        echo 'Usage: add_to_rc <rc_name> <project-name>'
+        echo 'Usage: add_to_rc <rc-name> <project-name>'
         return 1
     fi
 
@@ -228,6 +228,37 @@ function add_to_rc {
         esac
     else
         success "~/${ENV_NAME} is already configured"
+    fi
+}
+
+function add_to_config {
+    CONFIG_NAME="$1"
+    ENV_HOME_NAME="$2"
+    if [ -z "${CONFIG_NAME}" ] || [ -z "${ENV_HOME_NAME}" ]; then
+        echo 'Usage: add_to_config <config-name> <project-name>'
+        return 1
+    fi
+
+    CONFIG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/${CONFIG_NAME}"
+    if [ -d "${CONFIG_DIR}" ] && ! grep -r "${ENV_HOME_NAME}" "${CONFIG_DIR}" > /dev/null 2>&1; then
+        if $no_prompt; then
+            yes_no=y
+        else
+            user "Add '${ENV_HOME_NAME}' to ~/.config/${CONFIG_NAME}? [Y/n]"
+            read -e yes_no
+        fi
+        case "$yes_no" in
+            n*|N*)
+                success "Skipped modifying ~/.config/${CONFIG_NAME}"
+                ;;
+            *)
+                echo '' >> ${CONFIG_DIR}/config
+                echo "include ${ENV_HOME_NAME}/${CONFIG_NAME}/config" >> ${HOME}/${CONFIG_NAME}
+                success "Modified ~/.config/${CONFIG_NAME}"
+                ;;
+        esac
+    else
+        success "~/.config/${CONFIG_NAME} is already configured"
     fi
 }
 
