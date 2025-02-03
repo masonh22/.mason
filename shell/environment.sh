@@ -59,7 +59,9 @@ if [ -d "$HOME/.local/bin" ]; then
 fi
 
 # GNU which, if available. This check is good enough for now...
-if which -v > /dev/null 2>&1 && ! alias which > /dev/null 2>&1; then
+if which -v > /dev/null 2>&1 \
+        && ! alias which > /dev/null 2>&1 \
+        && ! type 'which' 2> /dev/null | grep -q 'function'; then
     alias which="alias | $(which which) --tty-only --read-alias --show-dot --show-tilde"
 fi
 
