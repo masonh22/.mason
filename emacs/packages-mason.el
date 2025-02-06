@@ -1,27 +1,14 @@
 ;; -*- lexical-binding: t; -*-
 (provide 'packages-mason)
 
-;; Use straight.el
-(setq straight-check-for-modifications (list 'find-when-checking))
-(setq straight-base-dir user-emacs-directory)
-(setq straight-vc-git-default-clone-depth 1)
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el"
-                         user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-(when (version< emacs-version "29.1")
-  ;; use-package needs to be installed on versions earlier than 29.1
-  (straight-use-package 'use-package))
-(setq straight-use-package-by-default t)
+(use-package package
+  :config
+  (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
+
+(use-package use-package-ensure
+  :custom
+  (use-package-always-ensure t))
 
 (use-package hl-todo
   :config
@@ -33,7 +20,7 @@
 
 (when (version<= "29.1" emacs-version)
   (use-package eglot
-    :straight nil
+    :ensure nil
     :defer t
     :config
     (add-to-list 'eglot-server-programs
@@ -53,7 +40,7 @@
      (rust-ts-mode . eglot-ensure)))
 
   (use-package treesit
-    :straight nil
+    :ensure nil
     :defer 2
     :custom
     (treesit-font-lock-level 3))
@@ -76,14 +63,14 @@
     (global-treesit-auto-mode)))
 
 (use-package flymake
-  :straight nil
+  :ensure nil
   :defer t
   :bind
   ("M-n" . 'flymake-goto-next-error)
   ("M-p" . 'flymake-goto-prev-error))
 
 (use-package org
-  :straight nil
+  :ensure nil
   :custom
   (org-directory "~/Notes/org")
   (org-default-notes-file (concat org-directory "/notes.org")))
