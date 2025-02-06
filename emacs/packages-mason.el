@@ -51,15 +51,6 @@
     (treesit-auto-install 'prompt)
     :config
     (treesit-auto-add-to-auto-mode-alist 'all)
-    ;; https://github.com/tree-sitter/tree-sitter-cpp/issues/271
-    (add-to-list 'treesit-auto-recipe-list
-                 (make-treesit-auto-recipe
-                  :lang 'cpp
-                  :ts-mode 'c++-ts-mode
-                  :remap 'c++-mode
-                  :url "https://github.com/tree-sitter/tree-sitter-cpp"
-                  :revision "v0.22.0"
-                  :ext "\\.cpp\\'"))
     (global-treesit-auto-mode)))
 
 (use-package flymake
