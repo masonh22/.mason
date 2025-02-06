@@ -6,9 +6,29 @@
   (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
 
+(package-initialize)
+
 (use-package use-package-ensure
   :custom
   (use-package-always-ensure t))
+
+(use-package doom-themes
+  :init
+  ;; Disable other themes
+  (mapc #'disable-theme custom-enabled-themes)
+  :custom
+  (doom-themes-enable-bold t)   ; if nil, bold is universally disabled
+  (doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  :config
+  (load-theme 'doom-one t)
+  ;; Improves org-mode's native fontification
+  (doom-themes-org-config)
+  ;; Flash the mode-line when the Emacs bell rings
+  (doom-themes-visual-bell-config))
+
+(use-package solaire-mode
+  :config
+  (solaire-global-mode +1))
 
 (use-package hl-todo
   :config

@@ -14,17 +14,6 @@
   (scroll-bar-mode -1))
 (menu-bar-mode -1)
 
-;; themes
-(when (version<= "28" emacs-version)
-  (require-theme 'modus-themes)
-  (define-key global-map (kbd "<f5>") #'modus-themes-toggle)
-  (if (version<= "30" emacs-version)
-    (progn (modus-themes-load-theme 'modus-vivendi-tinted)
-           (setq modus-themes-to-toggle
-                 '(modus-operandi-tinted modus-vivendi-tinted)))
-    (load-theme 'modus-vivendi :no-confirm)
-    (setq modus-themes-to-toggle '(modus-operandi modus-vivendi))))
-
 ;; use utf-8 in terminals
 (set-terminal-coding-system 'utf-8)
 
