@@ -457,6 +457,13 @@
 (use-package esup
   :defer t)
 
+(use-package vterm
+  :ensure nil
+  :defer t
+  :custom
+  (vterm-buffer-name-string "*vterm* %s")
+  (vterm-kill-buffer-on-exit t))
+
 ;; Latex setup.
 ;; See https://docs.doomemacs.org/latest/modules/lang/latex/
 ;; and https://michaelneuper.com/posts/efficient-latex-editing-with-emacs/

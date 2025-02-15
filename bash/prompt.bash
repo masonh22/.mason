@@ -20,7 +20,7 @@ __prompt_command() {
     __PROMPT_EXIT=$?
 
     # set terminal title
-    if [ -z "$INSIDE_EMACS" ]; then
+    if [ -z "$INSIDE_EMACS" ] || [ "$INSIDE_EMACS" = 'vterm' ]; then
         echo -ne "\033]0;${HOSTNAME}\007"
     fi
 
@@ -61,6 +61,10 @@ function prompt() {
         __BRACKET_DEFAULT="$new_bracket"
     else
         __BRACKET_DEFAULT="${__BRACKET_INIT}"
+    fi
+
+    if [ "$INSIDE_EMACS" = 'vterm' ]; then
+        PS1=${PS1}'\[$(vterm_prompt_end)\]'
     fi
 }
 function _prompt_list() {
