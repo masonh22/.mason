@@ -28,7 +28,11 @@ __prompt_command() {
     # https://www.gnu.org/software/emacs/manual/html_node/emacs/Interactive-Shell.html
     printf "\e]7;file://%s%s\e\\" "$HOSTNAME" "$PWD"
 }
-PROMPT_COMMAND=__prompt_command
+# We want our prompt command to go first so we can capture the return code of
+# the last command
+__MASON_PROMPT_COMMAND="__prompt_command${PROMPT_COMMAND:+;${PROMPT_COMMAND}}"
+PROMPT_COMMAND="$__MASON_PROMPT_COMMAND"
+unset __MASON_PROMPT_COMMAND
 
 function prompt() {
     if [ -z "$1" ]; then
@@ -109,15 +113,19 @@ prompt_mason() {
 
     prompts['normal']="\$(${bracket_color})[${bright_magenta}${current_time} ${bright_cyan}${fancy_username}${fancy_hostname} ${bright_cyan}${current_dir}\$(${bracket_color})]${clear_formatting}\n\$ "
 
-    prompts['mason']="\$(${bracket_color})[${bright_magenta}${current_time} ${fancy_username}${fancy_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
-    prompts['git']="${prompts['mason']}"
-    prompts['default']="${prompts['mason']}"
+    if [ -x "$(command -v git)" ]; then
+        prompts['mason']="\$(${bracket_color})[${bright_magenta}${current_time} ${fancy_username}${fancy_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
+        prompts['git']="${prompts['mason']}"
+        prompts['default']="${prompts['mason']}"
 
-    prompts['ocaml']="\$(${bracket_color})[${bright_magenta}${current_time} ${opam_switch} ${fancy_username} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
+        if [ -x "$(command -v opam)" ]; then
+            prompts['ocaml']="\$(${bracket_color})[${bright_magenta}${current_time} ${opam_switch} ${fancy_username} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
 
-    # same as opam but with hostname
-    prompts['full']="\$(${bracket_color})[${bright_magenta}${current_time} ${opam_switch} ${fancy_username}${fancy_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
-    brackets['full']='\e[90m' # bright black
+            # same as opam but with hostname
+            prompts['full']="\$(${bracket_color})[${bright_magenta}${current_time} ${opam_switch} ${fancy_username}${fancy_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
+            brackets['full']='\e[90m' # bright black
+        fi # opam
+    fi # git
 }
 prompt_gen+=(prompt_mason)
 
