@@ -22,3 +22,6 @@ alias gd='git diff'
 alias fd='fd --hidden'
 alias rg='rg --with-filename --no-heading --hidden'
 alias rm='rm -v'
+# cd
+alias '..'='cd ..'
+alias '...'='cd ../..'
