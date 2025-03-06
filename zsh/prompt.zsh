@@ -5,13 +5,16 @@ autoload -Uz vcs_info
 zstyle ':vcs_info:*' check-for-changes true
 zstyle ':vcs_info:*' unstagedstr '%F{red}x%f:'
 zstyle ':vcs_info:*' stagedstr ':+'
-zstyle ':vcs_info:git:*' formats '(%u%F{14}%b%f%c)'
-zstyle ':vcs_info:git:*' actionformats '(%a|%u%F{14}%b%f%c)'
+zstyle ':vcs_info:git:*' formats '(%u%b%c)'
+zstyle ':vcs_info:git:*' actionformats '(%a|%u%b%c)'
 
-precmd_vcs_info() {
-    vcs_info
+zstyle ':vcs_info:git*+set-message:*' hooks git-color-branch
+
++vi-git-color-branch() {
+    hook_com[branch]="$(color_text ${hook_com[branch]})"
 }
-precmd_functions+=( precmd_vcs_info )
+
+precmd_functions+=( vcs_info )
 
 # Enable prompt substitution
 setopt prompt_subst
