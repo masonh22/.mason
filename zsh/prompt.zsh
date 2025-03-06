@@ -1,4 +1,4 @@
-# Load required modules
+# Configure vcs_info
 autoload -Uz vcs_info
 
 # Format the vcs_info_msg_0_ variable
@@ -51,8 +51,11 @@ build_prompt() {
 
     print -rP "${left_prompt}${spacing}${right_prompt}"
 }
+precmd_functions+=( build_prompt )
 
 PROMPT='%f%# '
 RPROMPT='${vcs_info_msg_0_}%f'
 
-precmd_functions+=( build_prompt )
+if [ "$INSIDE_EMACS" = 'vterm' ]; then
+    PROMPT=${PROMPT}'%{$(vterm_prompt_end)%}'
+fi

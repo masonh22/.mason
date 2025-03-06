@@ -9,5 +9,7 @@ set -o HIST_REDUCE_BLANKS # don't store blank lines
 set -o CORRECT
 set -o CORRECT_ALL
 
+setopt prompt_subst # Enable prompt substitution
+
 SAVEHIST=1000000000
 HISTSIZE=1000000000
