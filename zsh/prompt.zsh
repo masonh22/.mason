@@ -35,27 +35,20 @@ build_prompt() {
 
     local hostname='$(if [ -n "${IS_SSH}" ]; then echo "$(color_text @$(hostname | cut -d "." -f 1))"; fi)'
 
-    # Left prompt: [user<@hostname> directory]
-    local left_prompt="${left_bracket}${bright_green}%n%f${hostname} ${bright_cyan}%~%f${right_bracket}"
-    # Right prompt: time
-    local right_prompt="${bright_magenta}%*%f "
+    # Prefix vcs_info_msg_0_ with a space if it is non-empty
+    local vcs_info='${vcs_info_msg_0_:+ ${vcs_info_msg_0_}}'
 
-    # Calculate spacing
-    local zero='%([BSUbfksu]|([FK]|){*})'
-    local left_size="${#${(S%%)left_prompt//$~zero/}}"
-    local right_size="${#${(S%%)right_prompt//$~zero/}}"
-    local space_size=$((COLUMNS - left_size - right_size))
+    # Base prompt: user<@hostname> directory
+    local base_prompt="${bright_green}%n%f${hostname} ${bright_cyan}%~%f"
+    # Inner prompt: time user<@hostname> directory vcs_info
+    local inner_prompt="${bright_magenta}%*%f ${base_prompt}${vcs_info}%f"
+    # Full prompt: adds brackets
+    local full_prompt="${left_bracket}${inner_prompt}${right_bracket}"
+    PROMPT="${full_prompt}${NEWLINE}%# "
 
-    # Create the spacing string
-    local spacing="${(l:$space_size:: :)}"
-
-    print -rP "${left_prompt}${spacing}${right_prompt}"
+    if [ "$INSIDE_EMACS" = 'vterm' ]; then
+        PROMPT=${PROMPT}'%{$(vterm_prompt_end)%}'
+    fi
 }
-precmd_functions+=( build_prompt )
 
-PROMPT='%f%# '
-RPROMPT='${vcs_info_msg_0_}%f'
-
-if [ "$INSIDE_EMACS" = 'vterm' ]; then
-    PROMPT=${PROMPT}'%{$(vterm_prompt_end)%}'
-fi
+build_prompt
