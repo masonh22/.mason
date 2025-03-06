@@ -1,17 +1,26 @@
 # Configure vcs_info
 autoload -Uz vcs_info
 
+__mason_vcs_unstagedstr='%F{red}x%f:'
+
 # Format the vcs_info_msg_0_ variable
+zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:*' check-for-changes true
-zstyle ':vcs_info:*' unstagedstr '%F{red}x%f:'
+zstyle ':vcs_info:*' unstagedstr "$__mason_vcs_unstagedstr"
 zstyle ':vcs_info:*' stagedstr ':+'
 zstyle ':vcs_info:git:*' formats '(%u%b%c)'
 zstyle ':vcs_info:git:*' actionformats '(%a|%u%b%c)'
 
-zstyle ':vcs_info:git*+set-message:*' hooks git-color-branch
+zstyle ':vcs_info:git*+set-message:*' hooks git-color-branch git-untracked
 
 +vi-git-color-branch() {
     hook_com[branch]="$(color_text ${hook_com[branch]})"
+}
+
++vi-git-untracked() {
+    if [ -z "${hook_com[unstaged]}" ] && [ -n "$(git status --porcelain 2>&1)" ]; then
+        hook_com[unstaged]="$__mason_vcs_unstagedstr"
+    fi
 }
 
 precmd_functions+=( vcs_info )
