@@ -1,8 +1,9 @@
+autoload -Uz compinit && compinit
 
-# The following lines were added by compinstall
 zstyle ':completion:*' completer _expand _complete _ignored
-zstyle :compinstall filename '/Users/jm/.zshrc'
+zstyle ':completion:*' menu select interactive
+zstyle ':completion:*' file-list all
 
-autoload -Uz compinit
-compinit
-# End of lines added by compinstall
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
+
+zstyle ':completion:*:default' list-colors ${(s.:.)LS_COLORS}
