@@ -8,19 +8,43 @@ zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:*' check-for-changes true
 zstyle ':vcs_info:*' unstagedstr "$__mason_vcs_unstagedstr"
 zstyle ':vcs_info:*' stagedstr ':+'
-zstyle ':vcs_info:git:*' formats '(%u%b%c)'
-zstyle ':vcs_info:git:*' actionformats '(%a|%u%b%c)'
+zstyle ':vcs_info:git:*' formats '(%u%b%c%m)'
+zstyle ':vcs_info:git:*' actionformats '(%a|%u%b%c%m)'
 
-zstyle ':vcs_info:git*+set-message:*' hooks git-color-branch git-untracked
-
-+vi-git-color-branch() {
-    hook_com[branch]="$(color_text ${hook_com[branch]})"
-}
+zstyle ':vcs_info:git*+set-message:*' hooks \
+       git-st \
+       git-color-branch \
+       git-untracked \
+       # intentionally blank
 
 +vi-git-untracked() {
     if [ -z "${hook_com[unstaged]}" ] && [ -n "$(git status --porcelain 2>&1)" ]; then
         hook_com[unstaged]="$__mason_vcs_unstagedstr"
     fi
+}
+
++vi-git-st() {
+    local ahead behind
+    local -a gitstatus
+
+    # Exit early in case the worktree is on a detached HEAD
+    git rev-parse ${hook_com[branch]}@{upstream} >/dev/null 2>&1 || return 0
+
+    local -a ahead_and_behind=(
+        $(git rev-list --left-right --count HEAD...${hook_com[branch]}@{upstream} 2>/dev/null)
+    )
+
+    ahead=${ahead_and_behind[1]}
+    behind=${ahead_and_behind[2]}
+
+    (( $ahead )) && gitstatus+=( ":%F{yellow}+${ahead}%f" )
+    (( $behind )) && gitstatus+=( ":%F{yellow}-${behind}%f" )
+
+    hook_com[misc]+="${(j:/:)gitstatus}"
+}
+
++vi-git-color-branch() {
+    hook_com[branch]="$(color_text ${hook_com[branch]})"
 }
 
 precmd_functions+=( vcs_info )
