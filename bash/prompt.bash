@@ -35,15 +35,58 @@ PROMPT_COMMAND="$__MASON_PROMPT_COMMAND"
 unset __MASON_PROMPT_COMMAND
 
 function prompt() {
-    if [ -z "$1" ]; then
-        if [ -z "${current_prompt_style}" ]; then
-            >&2 echo 'Cannot rebuild prompt with previous style the first time prompt is called.'
-            return 2
-        fi
-        echo "Regenerating prompt with style \"${current_prompt_style}\""
-        prompt ${current_prompt_style}
-        return
-    fi
+    local usage='Usgae: prompt [help|list|preview|regen|switch] ...'
+    case "$1" in
+        'help')
+            echo "$usage"
+            return
+            ;;
+        'list'|'ls')
+            # TODO: show all prompts, preview a prompt, list just the keys, etc.
+            local p
+            for p in "${!prompts[@]}"; do
+                echo "$p:"
+                printf '%s\n\n' "${prompts[$p]@P}"
+            done
+            return
+            ;;
+        'preview')
+            shift
+            if [ $# -lt 1 ]; then
+                echo "$usage"
+                return 1
+            fi
+            local preview_prompt="${prompts[$1]}"
+            if [ -z "$preview_prompt" ]; then
+                echo "Unknown prompt preset '$1'" 1>&2
+                return 1
+            fi
+            printf '%s\n\n' "${preview_prompt@P}"
+            return
+            ;;
+        'regen')
+            if [ -z "${current_prompt_style}" ]; then
+                >&2 echo 'Cannot rebuild prompt with previous style the first time prompt is called.'
+                return 2
+            fi
+            echo "Regenerating prompt with style \"${current_prompt_style}\""
+            prompt switch ${current_prompt_style}
+            return
+            ;;
+        'switch')
+            shift
+            # fall through
+            ;;
+        '')
+            echo "$usage"
+            return 1
+            ;;
+        *)
+            echo "$usage"
+            echo "Unrecognized option '$1'"
+            return 1
+            ;;
+    esac
 
     for gen_func in "${prompt_gen[@]}"; do
         $gen_func || return
@@ -117,6 +160,8 @@ prompt_mason() {
 
     prompts['normal']="\$(${bracket_color})[${bright_magenta}${current_time} ${bright_cyan}${fancy_username}${fancy_hostname} ${bright_cyan}${current_dir}\$(${bracket_color})]${clear_formatting}\n\$ "
 
+    # TODO: maybe just condition git_prompt on whether git exists? that way it
+    # can just be plugged into any other prompt (same with opam/ocaml)
     if [ -x "$(command -v git)" ]; then
         prompts['mason']="\$(${bracket_color})[${bright_magenta}${current_time} ${fancy_username}${fancy_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
         prompts['git']="${prompts['mason']}"
@@ -134,7 +179,7 @@ prompt_mason() {
 prompt_gen+=(prompt_mason)
 
 if [ -x "$(command -v git)" ]; then
-    prompt git > /dev/null
+    prompt switch git > /dev/null
 else
-    prompt simple > /dev/null
+    prompt switch simple > /dev/null
 fi
