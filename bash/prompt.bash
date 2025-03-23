@@ -121,10 +121,23 @@ function prompt() {
     fi
 }
 function _prompt_list() {
-    local cur=${COMP_WORDS[COMP_CWORD]}
-    COMPREPLY=( $(compgen -W "${!prompts[*]}" $cur) )
+    local cur prev words cword
+    _init_completion || return
+
+    local verbs='help list preview regen switch'
+
+    if [ $cword -eq 1 ]; then
+        COMPREPLY=($(compgen -W "$verbs" -- "$cur"))
+    elif [ $cword -eq 2 ]; then
+        case "$prev" in
+            'preview'|'switch')
+                COMPREPLY=($(compgen -W "${!prompts[*]}" -- "$cur"))
+                ;;
+        esac
+    fi
+    return 0
 }
-complete -o default -F _prompt_list prompt
+complete -F _prompt_list prompt
 
 # useful things to include in prompts
 gen_prompt_utils() {
