@@ -34,34 +34,44 @@ __MASON_PROMPT_COMMAND="__prompt_command${PROMPT_COMMAND:+;${PROMPT_COMMAND}}"
 PROMPT_COMMAND="$__MASON_PROMPT_COMMAND"
 unset __MASON_PROMPT_COMMAND
 
+prompt-preview() {
+    if [ $# -lt 1 ]; then
+        echo "Usage: prompt preview <prompt name>"
+        return 1
+    fi
+    local preview_prompt="${prompts[$1]}"
+    if [ -z "$preview_prompt" ]; then
+        echo "Unknown prompt preset '$1'" 1>&2
+        return 1
+    fi
+    local old_bracket="$__BRACKET_DEFAULT"
+    local new_bracket="${brackets[$1]}"
+    if [ -n "$new_bracket" ]; then
+        __BRACKET_DEFAULT="${new_bracket}"
+    fi
+    printf '%s\n\n' "${preview_prompt@P}"
+    __BRACKET_DEFAULT="$old_bracket"
+}
+
 function prompt() {
-    local usage='Usgae: prompt [help|list|preview|regen|switch] ...'
+    local usage='Usage: prompt [help|list|preview|regen|switch] ...'
     case "$1" in
         'help')
             echo "$usage"
             return
             ;;
         'list'|'ls')
-            # TODO: show all prompts, preview a prompt, list just the keys, etc.
+            # TODO: show all prompts, list just the keys, etc.
             local p
             for p in "${!prompts[@]}"; do
                 echo "$p:"
-                printf '%s\n\n' "${prompts[$p]@P}"
+                prompt-preview "$p"
             done
             return
             ;;
         'preview')
             shift
-            if [ $# -lt 1 ]; then
-                echo "$usage"
-                return 1
-            fi
-            local preview_prompt="${prompts[$1]}"
-            if [ -z "$preview_prompt" ]; then
-                echo "Unknown prompt preset '$1'" 1>&2
-                return 1
-            fi
-            printf '%s\n\n' "${preview_prompt@P}"
+            prompt-preview "$@"
             return
             ;;
         'regen')
