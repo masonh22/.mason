@@ -118,7 +118,9 @@ complete -o default -F _prompt_list prompt
 
 # useful things to include in prompts
 gen_prompt_utils() {
-    fancy_hostname="$(if [ -n "${IS_SSH}" ]; then echo "$(color_text @$(hostname | cut -d "." -f 1))"; fi)"
+    fancy_hostname="$(color_text @$(hostname | cut -d "." -f 1))"
+    # only show hostname if this is an ssh session
+    optional_hostname="$(if [ -n "${IS_SSH}" ]; then echo "${fancy_hostname}"; fi)"
     opam_switch='$(color_text "($(opam switch show))")'
     fancy_username="$(color_text $(whoami))"
     fancy_cursor='\e[?6;0;13;c'
@@ -158,17 +160,17 @@ prompt_mason() {
 
     prompts['simple']="[${fancy_username} ${current_dir}]\n\$ "
 
-    prompts['normal']="\$(${bracket_color})[${bright_magenta}${current_time} ${bright_cyan}${fancy_username}${fancy_hostname} ${bright_cyan}${current_dir}\$(${bracket_color})]${clear_formatting}\n\$ "
+    prompts['normal']="\$(${bracket_color})[${bright_magenta}${current_time} ${bright_cyan}${fancy_username}${optional_hostname} ${bright_cyan}${current_dir}\$(${bracket_color})]${clear_formatting}\n\$ "
 
     # TODO: maybe just condition git_prompt on whether git exists? that way it
     # can just be plugged into any other prompt (same with opam/ocaml)
     if [ -x "$(command -v git)" ]; then
-        prompts['mason']="\$(${bracket_color})[${bright_magenta}${current_time} ${fancy_username}${fancy_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
+        prompts['mason']="\$(${bracket_color})[${bright_magenta}${current_time} ${fancy_username}${optional_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
         prompts['git']="${prompts['mason']}"
         prompts['default']="${prompts['mason']}"
 
         if [ -x "$(command -v opam)" ]; then
-            prompts['ocaml']="\$(${bracket_color})[${bright_magenta}${current_time} ${opam_switch} ${fancy_username} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
+            prompts['ocaml']="\$(${bracket_color})[${bright_magenta}${current_time} ${opam_switch} ${fancy_username}${optional_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
 
             # same as opam but with hostname
             prompts['full']="\$(${bracket_color})[${bright_magenta}${current_time} ${opam_switch} ${fancy_username}${fancy_hostname} ${bright_cyan}${current_dir}\$(git_prompt)\$(${bracket_color})]${clear_formatting}\n\$ "
