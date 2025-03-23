@@ -25,3 +25,8 @@ alias rm='rm -v'
 # cd
 alias '..'='cd ..'
 alias '...'='cd ../..'
+
+# bat/batcat
+if [ -x "$(command -v batcat)" ]; then
+   alias bat=batcat
+fi
