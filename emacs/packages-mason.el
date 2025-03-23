@@ -438,12 +438,7 @@
   :ensure nil
   :custom
   (whitespace-style '(face trailing tabs tab-mark))
-  :hook
-  (c++-ts-mode
-   c-ts-mode
-   tuareg-mode
-   rust-ts-mode
-   shell-script-mode))
+  :hook (prog-mode))
 
 (use-package expand-region
   :defer 2
