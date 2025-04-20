@@ -394,9 +394,7 @@
   :defer t)
 
 (use-package rust-mode
-  :defer t
-  :config
-  (rust-mode-treesitter-derive t))
+  :defer t)
 
 (use-package whitespace
   :ensure nil
