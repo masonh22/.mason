@@ -165,3 +165,26 @@ This is useful for changing the 'default' buffer from *scratch* to *org*."
 
 (add-hook 'after-init-hook
           'init-org-buffer)
+
+(defun enable-superword-in-find-file ()
+  "Enable superword-mode in the minibuffer for find-file.
+This makes it so that e.g. M-DEL deletes entire directory names."
+  (when (eq this-command 'find-file)
+    (superword-mode 1)))
+
+(add-hook 'minibuffer-setup-hook 'enable-superword-in-find-file)
+
+;; Subword mode changes the definition of a word so that word-based commands
+;; stop inside symbols with mixed uppercase and lowercase letters,
+;; e.g. "GtkWidget", "EmacsFrameClass", "NSGraphicsContext".
+;;
+;; Here we call these mixed case symbols ‘nomenclatures’.  Each capitalized (or
+;; completely uppercase) part of a nomenclature is called a ‘subword’.  Here are
+;; some examples:
+;;
+;;  Nomenclature           Subwords
+;;  ===========================================================
+;;  GtkWindow          =>  "Gtk" and "Window"
+;;  EmacsFrameClass    =>  "Emacs", "Frame" and "Class"
+;;  NSGraphicsContext  =>  "NS", "Graphics" and "Context"
+(add-hook 'prog-mode-hook 'subword-mode)
