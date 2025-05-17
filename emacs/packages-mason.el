@@ -27,12 +27,13 @@
   (doom-themes-visual-bell-config))
 
 (use-package solaire-mode
-  :config
-  (solaire-global-mode +1))
+  :defer t
+  :hook (after-init . solaire-global-mode))
 
 (use-package hl-todo
+  :defer t
+  :hook (after-init . global-hl-todo-mode)
   :config
-  (global-hl-todo-mode +1)
   (add-to-list 'hl-todo-keyword-faces
                '("MASON" . "#cc9393"))
   (add-to-list 'hl-todo-keyword-faces
@@ -66,12 +67,11 @@
     (treesit-font-lock-level 3))
 
   (use-package treesit-auto
-    ;; this cannot be deferred
+    :hook (after-init . global-treesit-auto-mode)
     :custom
     (treesit-auto-install 'prompt)
     :config
-    (treesit-auto-add-to-auto-mode-alist 'all)
-    (global-treesit-auto-mode)))
+    (treesit-auto-add-to-auto-mode-alist 'all)))
 
 (use-package flymake
   :ensure nil
@@ -96,9 +96,8 @@
     typescript-ts-mode) . rainbow-delimiters-mode))
 
 (use-package undo-tree
-  :defer 1
-  :init
-  (global-undo-tree-mode)
+  :defer t
+  :hook (after-init . global-undo-tree-mode)
   :custom
   (undo-tree-auto-save-history 'nil))
 
@@ -110,34 +109,22 @@
 ;; Enable rich annotations using the Marginalia package
 (use-package marginalia
   :defer 1
+  :hook after-init
   ;; Bind `marginalia-cycle' locally in the minibuffer.  To make the binding
   ;; available in the *Completions* buffer, add it to the
   ;; `completion-list-mode-map'.
   :bind (:map minibuffer-local-map
-              ("M-A" . marginalia-cycle))
-
-  :init
-  ;; Marginalia must be activated in the :init section of use-package such that
-  ;; the mode gets enabled right away. Note that this forces loading the
-  ;; package.
-  (marginalia-mode))
+              ("M-A" . marginalia-cycle)))
 
 (use-package vertico
   :defer 1
-  :init
-  (vertico-mode)
-
-  ;; Different scroll margin
-  ;; (setq vertico-scroll-margin 0)
-
-  ;; Show more candidates
-  ;; (setq vertico-count 20)
-
-  ;; Grow and shrink the Vertico minibuffer
-  ;; (setq vertico-resize t)
-
+  :hook after-init
+  :custom
+  ;; (vertico-scroll-margin 0) ;; Different scroll margin
+  ;; (vertico-count 20)        ;; Show more candidates
+  ;; (vertico-resize t)        ;; Grow and shrink the Vertico minibuffer
   ;; Optionally enable cycling for `vertico-next' and `vertico-previous'.
-  (setq vertico-cycle t)
+  (vertico-cycle t)
   )
 
 (use-package corfu
@@ -201,13 +188,13 @@
 ;; use the `orderless' completion style.
 (use-package orderless
   :defer 1
-  :init
+  :custom
   ;; Configure a custom style dispatcher (see the Consult wiki)
-  ;; (setq orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch)
-  ;;       orderless-component-separator #'orderless-escapable-split-on-space)
-  (setq completion-styles '(orderless basic)
-        completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion)))))
+  ;; (orderless-style-dispatchers '(+orderless-consult-dispatch orderless-affix-dispatch))
+  ;; (orderless-component-separator #'orderless-escapable-split-on-space)
+  (completion-styles '(orderless basic))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles partial-completion)))))
 
 ;; Example configuration for Consult
 (use-package consult
@@ -361,17 +348,14 @@
 
 (use-package projectile
   :defer 2
-  :init
-  (projectile-mode +1)
+  :hook after-init
   :custom
   (projectile-project-root-functions
    '(projectile-root-local
      projectile-root-marked
      projectile-root-bottom-up))
   (projectile-indexing-method 'alien)
-  ;; :bind
-  ;; (:map projectile-mode-map
-  ;;       ("C-c p" . projectile-command-map))
+  ;; :bind-keymap ("C-c p" . projectile-command-map)
   )
 
 (use-package haskell-mode
