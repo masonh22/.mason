@@ -1,0 +1,41 @@
+[window]
+dimensions = { columns = 80, lines = 24 }
+opacity = 0.8
+
+[font]
+normal = { family = "Ubuntu Mono", style = "Regular" }
+size = 13
+
+[cursor]
+style = { shape = "Block", blinking = "On" }
+blink_interval = 750
+blink_timeout = 10
+
+[mouse]
+hide_when_typing = true
+
+# Gnome Terminal default colors
+
+[colors.primary]
+background = '#171421'
+foreground = '#d0cfcc'
+
+[colors.normal]
+black      = '#171421'
+red        = '#c01c28'
+green      = '#26a269'
+yellow     = '#a2734c'
+blue       = '#12488b'
+magenta    = '#a347ba'
+cyan       = '#2aa1b3'
+white      = '#d0cfcc'
+
+[colors.bright]
+black      = '#5e5c64'
+red        = '#f66151'
+green      = '#33d17a'
+yellow     = '#e9ad0c'
+blue       = '#2a7bde'
+magenta    = '#c061cb'
+cyan       = '#33c7de'
+white      = '#ffffff'
