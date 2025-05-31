@@ -53,7 +53,7 @@ prompt-preview() {
     __BRACKET_DEFAULT="$old_bracket"
 }
 
-function prompt() {
+prompt() {
     local usage='Usage: prompt [help|list|preview|regen|switch] ...'
     case "$1" in
         'help')
@@ -120,7 +120,7 @@ function prompt() {
         PS1=${PS1}'\[$(vterm_prompt_end)\]'
     fi
 }
-function _prompt_list() {
+_prompt_list() {
     local cur prev words cword
     _init_completion || return
 

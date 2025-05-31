@@ -8,23 +8,23 @@ if [ -z "$INSTALL_HOME" ]; then
     exit 1
 fi
 
-function info {
+info() {
     printf "\r  [ \033[00;34m..\033[0m ] $@\n"
 }
 
-function user {
+user() {
     printf "\r  [ \033[0;33m??\033[0m ] $@\n> "
 }
 
-function success {
+success() {
     printf "\r\033[2K  [ \033[00;32mOK\033[0m ] $@\n"
 }
 
-function fail {
+fail() {
     printf "\r\033[2K  [\033[0;31mFAIL\033[0m] $@\n" 1>&2
 }
 
-function do_op {
+do_op() {
     #echo "$@"
     $@ || exit
 }
@@ -56,7 +56,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-function install_symlink {
+install_symlink() {
     if [ "$#" != 2 ]; then
         fail 'Internal error: install_symlink requires two arguments'
         fail "$@"
@@ -116,7 +116,7 @@ function install_symlink {
     fi
 }
 
-function install_symlinks {
+install_symlinks() {
     info 'installing symlinks'
 
     default_action=$init_default_action
@@ -136,7 +136,7 @@ function install_symlinks {
     done
 }
 
-function install_copies {
+install_copies() {
     info 'copying files'
 
     default_action=$init_default_action
@@ -200,7 +200,7 @@ function install_copies {
     done
 }
 
-function add_to_rc {
+add_to_rc() {
     ENV_NAME="$1"
     ENV_HOME_NAME="$2"
     if [ -z "${ENV_NAME}" ] || [ -z "${ENV_HOME_NAME}" ]; then
@@ -231,7 +231,7 @@ function add_to_rc {
     fi
 }
 
-function add_to_config {
+add_to_config() {
     CONFIG_NAME="$1"
     ENV_HOME_NAME="$2"
     if [ -z "${CONFIG_NAME}" ] || [ -z "${ENV_HOME_NAME}" ]; then
@@ -262,7 +262,7 @@ function add_to_config {
     fi
 }
 
-function add_to_bashrc {
+add_to_bashrc() {
     if [ -z "$1" ]; then
         echo 'Usage: add_to_bashrc <project-name>'
         return 1
@@ -271,7 +271,7 @@ function add_to_bashrc {
     add_to_rc .bashrc "$1"
 }
 
-function get_emacs_home {
+get_emacs_home() {
     if [ -d "${HOME}/.config/emacs" ]; then
         echo "${HOME}/.config/emacs"
     elif [ -d "${HOME}/.emacs.d" ]; then
@@ -282,7 +282,7 @@ function get_emacs_home {
     fi
 }
 
-function add_to_emacs {
+add_to_emacs() {
     EMACS_PACKAGE_NAME=$1
     if [ -z "${EMACS_PACKAGE_NAME}" ]; then
         echo 'Usage: add_to_emacs <package-name>'

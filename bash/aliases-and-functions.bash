@@ -8,7 +8,7 @@ alias la='ls -A'
 alias l='ls -CF'
 
 # display an alert every 20 minutes to look away
-function save-my-eyes() {
+save-my-eyes() {
     if [ -f /tmp/eyes_pid.txt ]; then
         pid=$(head -n 1 /tmp/eyes_pid.txt)
         kill $pid

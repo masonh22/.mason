@@ -9,7 +9,7 @@ cd $MASON_HOME
 
 echo ''
 
-function setup_gitconfig {
+setup_gitconfig() {
     if ! $no_prompt && [ ! -f git/.gitconfig.local.copy.home ]; then
         user 'setup .gitconfig? y/N'
         read -e do_gitconfig
@@ -33,7 +33,7 @@ function setup_gitconfig {
     fi
 }
 
-function setup_emacs_early_init {
+setup_emacs_early_init() {
     EMACS_HOME="$(get_emacs_home)"
     ret=$?
     if [ $ret != 0 ]; then
