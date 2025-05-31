@@ -34,7 +34,7 @@ __MASON_PROMPT_COMMAND="__prompt_command${PROMPT_COMMAND:+;${PROMPT_COMMAND}}"
 PROMPT_COMMAND="$__MASON_PROMPT_COMMAND"
 unset __MASON_PROMPT_COMMAND
 
-prompt-preview() {
+_prompt_preview() {
     if [ $# -lt 1 ]; then
         echo "Usage: prompt preview <prompt name>"
         return 1
@@ -65,23 +65,23 @@ prompt() {
             local p
             for p in "${!prompts[@]}"; do
                 echo "$p:"
-                prompt-preview "$p"
+                _prompt_preview "$p"
             done
             return
             ;;
         'preview')
             shift
-            prompt-preview "$@"
-            return
+            _prompt_preview "$@"
+            return $?
             ;;
         'regen')
             if [ -z "${current_prompt_style}" ]; then
-                >&2 echo 'Cannot rebuild prompt with previous style the first time prompt is called.'
+                >&2 echo 'Cannot rebuild prompt: no previous style set.'
                 return 2
             fi
             echo "Regenerating prompt with style \"${current_prompt_style}\""
             prompt switch ${current_prompt_style}
-            return
+            return $?
             ;;
         'switch')
             shift
@@ -98,6 +98,7 @@ prompt() {
             ;;
     esac
 
+    local gen_func
     for gen_func in "${prompt_gen[@]}"; do
         $gen_func || return
     done
@@ -141,7 +142,7 @@ complete -F _prompt_list prompt
 
 # useful things to include in prompts
 gen_prompt_utils() {
-    fancy_hostname="$(color_text @$(hostname | cut -d "." -f 1))"
+    fancy_hostname="$(color_text @$(hostname -s))"
     # only show hostname if this is an ssh session
     optional_hostname="$(if [ -n "${IS_SSH}" ]; then echo "${fancy_hostname}"; fi)"
     opam_switch='$(color_text "($(opam switch show))")'
@@ -174,7 +175,6 @@ prompt_mason() {
     local bright_white='\[\e[97m\]'
 
     local username='\u'
-    local histname='\h'
     local current_time='\t'
     local current_dir='\w'
 
@@ -200,11 +200,10 @@ prompt_mason() {
             brackets['full']='\e[90m' # bright black
         fi # opam
     fi # git
+
+    # Ensure 'default' is set to 'simple' if nothing else defined it
+    if [[ -z "${prompts[default]}" ]]; then
+        prompts[default]="${prompts[simple]}"
+    fi
 }
 prompt_gen+=(prompt_mason)
-
-if [ -x "$(command -v git)" ]; then
-    prompt switch git > /dev/null
-else
-    prompt switch simple > /dev/null
-fi

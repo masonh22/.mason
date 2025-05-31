@@ -1,4 +1,4 @@
-if [ ! -z "${SSH_TTY}" ]; then
+if [ -n "${SSH_TTY}" ]; then
     export IS_SSH=true
 
     # This is probably (definitely) bad, but it is so annoying to configure

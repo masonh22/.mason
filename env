@@ -18,5 +18,14 @@ elif [ -n "${ZSH_VERSION}" ]; then
     done
 fi
 
+# --- Initial prompt selection ---
+# Attempt to set the 'default' prompt. If it fails, try 'simple'.
+# Errors from `prompt switch` will be printed by the function itself.
+if ! prompt switch default > /dev/null 2>&1; then
+    if ! prompt switch simple > /dev/null 2>&1; then
+        print -u2 'Critical: Failed to set any default prompt. PS1 might be unset.'
+    fi
+fi
+
 [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env done"
 : # no-op to clear return code
