@@ -1,3 +1,263 @@
+#!/bin/zsh
+
+# To add one or more prompts, write a function to add prompt strings to
+# [prompts] (and optionally bracket colors to [brackets]), then add this
+# generating function to prompt_gen.
+
+# Zsh shell options
+setopt PROMPT_SUBST
+
+# For completion system
+autoload -Uz compinit && compinit -i
+
+# stores prompt strings
+typeset -A prompts
+# stores bracket colors (raw escape codes)
+typeset -A brackets
+# stores functions for generating prompts, i.e. adding strings to [prompts]
+# and [brackets]
+typeset -a prompt_gen
+
+current_prompt_style=
+
+__BRACKET_INIT='%f'
+__BRACKET_DEFAULT=${__BRACKET_INIT}
+
+# Hook function executed before each prompt
+__mason_prompt_precmd() {
+    # Set terminal title
+    if [[ -z "$INSIDE_EMACS" || "$INSIDE_EMACS" == 'vterm' ]]; then
+        printf '\e]2;%s\a' "$(hostname -s)"
+    fi
+
+    # Add a "Operating System Command" for the current directory (for Emacs)
+    # https://www.gnu.org/software/emacs/manual/html_node/emacs/Interactive-Shell.html
+    printf '\e]7;file://%s%s\e\\' "${HOSTNAME}" "${PWD}"
+}
+
+# Add to precmd_functions array if not already present
+if (( ${#precmd_functions[@]} == 0 )) || (( ! ${precmd_functions[(Ie)__mason_prompt_precmd]} )); then
+    precmd_functions+=(__mason_prompt_precmd)
+fi
+
+_prompt_preview() {
+    if (( $# < 1 )); then
+        print -u2 "Usage: prompt preview <prompt name>"
+        return 1
+    fi
+    local preview_prompt_name="$1"
+    local preview_prompt="${prompts[$preview_prompt_name]}"
+
+    if [[ -z "$preview_prompt" ]]; then
+        print -u2 "Unknown prompt preset '$preview_prompt_name'"
+        return 1
+    fi
+
+    local old_bracket="$__BRACKET_DEFAULT"
+    local new_bracket="${brackets[$preview_prompt_name]}"
+
+    if [[ -n "$new_bracket" ]]; then
+        __BRACKET_DEFAULT="${new_bracket}"
+    fi
+
+    # print -P interprets Zsh prompt escape sequences like %n, %~, %{...%}
+    # -r prevents backslash interpretation by print itself before -P processing.
+    print -rP -- "${preview_prompt}"
+    print
+
+    __BRACKET_DEFAULT="$old_bracket"
+}
+
+prompt() {
+    local usage='Usage: prompt [help|list|preview|regen|switch] ...'
+    case "$1" in
+        'help')
+            print "$usage"
+            return 0
+            ;;
+        'list'|'ls')
+            local p
+            # Iterate over keys of the associative array `prompts`
+            for p in "${(@k)prompts}"; do
+                print "$p:"
+                _prompt_preview "$p"
+            done
+            return 0
+            ;;
+        'preview')
+            shift
+            _prompt_preview "$@" # Pass remaining arguments
+            return $?
+            ;;
+        'regen')
+            if [[ -z "${current_prompt_style}" ]]; then
+                print -u2 'Cannot rebuild prompt: no previous style set.'
+                return 2
+            fi
+            print "Regenerating prompt with style \"${current_prompt_style}\""
+            # Recurse to 'prompt switch'
+            prompt switch "${current_prompt_style}"
+            return $?
+            ;;
+        'switch')
+            shift
+            # Fall through to main logic
+            ;;
+        '') # No arguments
+            print "$usage"
+            return 1
+            ;;
+        *) # Unknown option
+            print "$usage"
+            print -u2 "Unrecognized option '$1'"
+            return 1
+            ;;
+    esac
+
+    # Ensure all prompt generating functions are called
+    local gen_func
+    for gen_func in "${prompt_gen[@]}"; do
+        # Execute the function stored in gen_func
+        if ! "$gen_func"; then
+            print -u2 "Prompt generator function '$gen_func' failed."
+            return 1
+        fi
+    done
+
+    local new_prompt_name="$1"
+    if [[ -z "${prompts[$new_prompt_name]}" ]]; then
+        print -u2 "Unknown prompt preset '$new_prompt_name'"
+        if (( ${#prompts[@]} > 0 )); then
+            print -u2 "Available presets: ${(@k)prompts}"
+        else
+            print -u2 "No presets are currently defined. Check your prompt generator functions."
+        fi
+        return 1
+    fi
+
+    current_prompt_style="$new_prompt_name"
+    PROMPT="${prompts[$new_prompt_name]}" # Set the primary prompt string
+
+    local new_bracket="${brackets[$new_prompt_name]}"
+    if [[ -n "$new_bracket" ]]; then
+        __BRACKET_DEFAULT="$new_bracket"
+    else
+        __BRACKET_DEFAULT="${__BRACKET_INIT}"
+    fi
+
+    if [[ "$INSIDE_EMACS" == 'vterm' ]]; then
+        PROMPT=${PROMPT}'%{$(vterm_prompt_end)%}'
+    fi
+    return 0
+}
+_prompt_completion() {
+    # `compstate` associative array holds completion context (e.g. current word index)
+    # `words` array is 1-indexed, `CURRENT` is 1-based index of word to complete
+    local -a actions_with_descriptions
+    actions_with_descriptions=(
+        'help:Show usage information'
+        'list:List available prompt styles'
+        'ls:Alias for list'
+        'preview:Preview a prompt style'
+        'regen:Regenerate the current prompt'
+        'switch:Switch to a new prompt style'
+    )
+
+    # If completing the first argument to `prompt` (the action)
+    if (( CURRENT == 2 )); then
+        # _describe provides completion with descriptions
+        _describe -t actions 'action' actions_with_descriptions
+    # If completing the second argument (the prompt name)
+    elif (( CURRENT == 3 )); then
+        case "${words[2]}" in  # words[2] is the action (e.g., 'prompt switch <TAB>')
+            'preview'|'switch')
+                _values 'prompt style' ${(@k)prompts}
+                ;;
+        esac
+    fi
+    return 0 # Indicate success to completion system
+}
+compdef _prompt_completion prompt
+
+# Utility function to generate common prompt components
+gen_prompt_utils() {
+    fancy_hostname="$(color_text "@$(hostname -s)")"
+
+    if [[ -n "$IS_SSH" ]]; then
+        optional_hostname="${fancy_hostname}"
+    else
+        optional_hostname=""
+    fi
+
+    if command -v opam >/dev/null 2>&1; then
+      opam_switch='$(color_text "($(opam switch show 2>/dev/null || echo "no switch"))")'
+    else
+      opam_switch=''
+    fi
+
+    fancy_username="$(color_text "$(whoami)")"
+
+    # TODO MASON use %j to detect background jobs!
+
+    # Brackets: red if last command exited with non-zero status
+    left_bracket='%(?.${__BRACKET_DEFAULT}.%F{red})[%f'
+    right_bracket='%(?.${__BRACKET_DEFAULT}.%F{red})]%f'
+}
+prompt_gen+=(gen_prompt_utils) # Add function name to array
+
+# Function to define Mason's prompts
+prompt_mason() {
+    local newline=$'\n'
+
+    local clear_formatting='%f'
+    local black='%F{black}'
+    local bright_black='%F{8}'
+    local red='%{red}'
+    local bright_red='%F{9}'
+    local green='%{green}'
+    local bright_green='%F{10}'
+    local yellow='%{yellow}'
+    local bright_yellow='%F{11}'
+    local blue='%{blue}'
+    local bright_blue='%F{12}'
+    local magenta='%{magenta}'
+    local bright_magenta='%F{13}'
+    local cyan='%{cyan}'
+    local bright_cyan='%F{14}'
+    local white='%{white}'
+    local bright_white='%F{15}'
+
+    local username='%n'
+    local time_prompt='%*'  # Current time (HH:MM:SS)
+    local dir_prompt='%~'   # Current directory (~ for $HOME, %d for full path)
+    local prompt_char='%# ' # '#' for root, '%' for normal user (or $ if PROMPT_SP is unset)
+
+    # Prefix vcs_info_msg_0_ with a space if it is non-empty
+    local vcs_info='${vcs_info_msg_0_:+ ${vcs_info_msg_0_}}'
+
+    prompts[colorless]="[${username} ${dir_prompt}]${prompt_char}" # No space before prompt_char
+    prompts[minimal]="${prompts[colorless]}"
+
+    # Newline is `\n`. In Zsh prompts, it should not be inside %{...%}.
+    prompts[simple]="[${fancy_username} ${dir_prompt}]\%sn${prompt_char}"
+
+    prompts[normal]="${left_bracket}${bright_magenta}${time_prompt}${clear_formatting} ${fancy_username}${optional_hostname} ${bright_cyan}${dir_prompt}${clear_formatting}${right_bracket}${newline}${prompt_char}"
+
+    prompts[mason]="${left_bracket}${bright_magenta}${time_prompt}${clear_formatting} ${fancy_username}${optional_hostname} ${bright_cyan}${dir_prompt}${clear_formatting}${vcs_info}${right_bracket}${newline}${prompt_char}"
+    prompts[git]="${prompts[mason]}"
+    prompts[default]="${prompts[mason]}" # Set 'default' to use this
+
+    if command -v opam >/dev/null 2>&1 && [[ -n "$opam_switch" ]]; then # Check if opam command exists and opam_switch is populated
+        prompts[ocaml]="${left_bracket}${bright_magenta}${time_prompt}${clear_formatting} ${opam_switch} ${fancy_username}${optional_hostname} ${bright_cyan}${dir_prompt}${clear_formatting}${vcs_info}${right_bracket}${newline}${prompt_char}"
+
+        # 'full' prompt with fancy_hostname (which might be colored) instead of optional_hostname
+        prompts[full]="${left_bracket}${bright_magenta}${time_prompt}${clear_formatting} ${opam_switch} ${fancy_username}${fancy_hostname} ${bright_cyan}${dir_prompt}${clear_formatting}${vcs_info}${right_bracket}${newline}${prompt_char}"
+        brackets[full]="$bright_black"
+    fi
+}
+prompt_gen+=(prompt_mason) # Add function name to array
+
+################################################################################
 # Configure vcs_info
 autoload -Uz vcs_info
 
@@ -48,43 +308,3 @@ zstyle ':vcs_info:git*+set-message:*' hooks \
 }
 
 precmd_functions+=( vcs_info )
-
-# Enable prompt substitution
-setopt prompt_subst
-
-# Function to build the prompt
-build_prompt() {
-    local NEWLINE=$'\n'
-
-    local bright_black='%F{8}'
-    local bright_red='%F{9}'
-    local bright_green='%F{10}'
-    local bright_yellow='%F{11}'
-    local bright_blue='%F{12}'
-    local bright_magenta='%F{13}'
-    local bright_cyan='%F{14}'
-    local bright_white='%F{15}'
-
-    # Brackets: red if last command exited with non-zero status
-    local left_bracket='%(?..%F{red})[%f'
-    local right_bracket='%(?..%F{red})]%f'
-
-    local hostname='$(if [ -n "${IS_SSH}" ]; then echo "$(color_text @$(hostname | cut -d "." -f 1))"; fi)'
-
-    # Prefix vcs_info_msg_0_ with a space if it is non-empty
-    local vcs_info='${vcs_info_msg_0_:+ ${vcs_info_msg_0_}}'
-
-    # Base prompt: user<@hostname> directory
-    local base_prompt="${bright_green}%n%f${hostname} ${bright_cyan}%~%f"
-    # Inner prompt: time user<@hostname> directory vcs_info
-    local inner_prompt="${bright_magenta}%*%f ${base_prompt}${vcs_info}%f"
-    # Full prompt: adds brackets
-    local full_prompt="${left_bracket}${inner_prompt}${right_bracket}"
-    PROMPT="${full_prompt}${NEWLINE}%# "
-
-    if [ "$INSIDE_EMACS" = 'vterm' ]; then
-        PROMPT=${PROMPT}'%{$(vterm_prompt_end)%}'
-    fi
-}
-
-build_prompt
