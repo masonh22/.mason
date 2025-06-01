@@ -238,8 +238,7 @@ prompt_mason() {
     prompts[colorless]="[${username} ${dir_prompt}]${prompt_char}" # No space before prompt_char
     prompts[minimal]="${prompts[colorless]}"
 
-    # Newline is `\n`. In Zsh prompts, it should not be inside %{...%}.
-    prompts[simple]="[${fancy_username} ${dir_prompt}]\%sn${prompt_char}"
+    prompts[simple]="[${fancy_username} ${dir_prompt}]${newline}${prompt_char}"
 
     prompts[normal]="${left_bracket}${bright_magenta}${time_prompt}${clear_formatting} ${fancy_username}${optional_hostname} ${bright_cyan}${dir_prompt}${clear_formatting}${right_bracket}${newline}${prompt_char}"
 
@@ -247,7 +246,7 @@ prompt_mason() {
     prompts[git]="${prompts[mason]}"
     prompts[default]="${prompts[mason]}" # Set 'default' to use this
 
-    if command -v opam >/dev/null 2>&1 && [[ -n "$opam_switch" ]]; then # Check if opam command exists and opam_switch is populated
+    if command -v opam >/dev/null 2>&1; then
         prompts[ocaml]="${left_bracket}${bright_magenta}${time_prompt}${clear_formatting} ${opam_switch} ${fancy_username}${optional_hostname} ${bright_cyan}${dir_prompt}${clear_formatting}${vcs_info}${right_bracket}${newline}${prompt_char}"
 
         # 'full' prompt with fancy_hostname (which might be colored) instead of optional_hostname
