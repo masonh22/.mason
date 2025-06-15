@@ -11,3 +11,7 @@ setopt prompt_subst # Enable prompt substitution
 HISTFILE=~/.zsh_history
 SAVEHIST=1000000000
 HISTSIZE=1000000000
+
+# bash/emacs style word selection
+autoload -U select-word-style
+select-word-style bash
