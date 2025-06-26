@@ -4,9 +4,6 @@
 # [prompts] (and optionally bracket colors to [brackets]), then add this
 # generating function to prompt_gen.
 
-# Zsh shell options
-setopt PROMPT_SUBST
-
 # For completion system
 autoload -Uz compinit && compinit -i
 
