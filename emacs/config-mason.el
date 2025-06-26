@@ -7,6 +7,9 @@
 ;; disable splash screen
 (setq inhibit-splash-screen t)
 
+;; disable GUI graphical boxes
+(setopt use-dialog-box nil)
+
 ;; disable tool, scroll, and menu bars TODO slow, .02s
 (when (fboundp 'tool-bar-mode) ;; not available on nox
   (tool-bar-mode -1))
