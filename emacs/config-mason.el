@@ -223,3 +223,16 @@ The DWIM behaviour of this command is as follows:
   (interactive)
   (dolist (theme custom-enabled-themes)
     (disable-theme theme)))
+
+(let* ((local-bin (expand-file-name "~/.local/bin"))
+       (current-path (getenv "PATH")))
+  (when (file-directory-p local-bin)
+    ;; Add ~/.local/bin to exec-path if it's not already there
+    ;; 't' adds it to the front of the list for higher precedence
+    (unless (member local-bin exec-path)
+      (add-to-list 'exec-path local-bin t))
+
+    ;; Add ~/.local/bin to the PATH environment variable for subprocesses
+    ;; Only add if it's not already in the PATH
+    (unless (string-match-p (regexp-quote local-bin) current-path)
+      (setenv "PATH" (concat local-bin ":" current-path)))))
