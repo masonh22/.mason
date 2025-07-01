@@ -4,9 +4,6 @@
 # [prompts] (and optionally bracket colors to [brackets]), then add this
 # generating function to prompt_gen.
 
-# For completion system
-autoload -Uz compinit && compinit -i
-
 # stores prompt strings
 typeset -A prompts
 # stores bracket colors (raw escape codes)
