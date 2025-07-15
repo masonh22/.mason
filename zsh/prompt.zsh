@@ -252,7 +252,7 @@ prompt_mason() {
     local bright_white='%F{15}'
 
     local username='%n'
-    local time_prompt='%*'  # Current time (HH:MM:SS)
+    local time_prompt='%D{%H:%M:%S}'  # Current time (HH:MM:SS)
     local dir_prompt='%~'   # Current directory (~ for $HOME, %d for full path)
     local prompt_char='%# ' # '#' for root, '%' for normal user (or $ if PROMPT_SP is unset)
 
