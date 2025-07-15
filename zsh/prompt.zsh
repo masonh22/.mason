@@ -17,21 +17,51 @@ current_prompt_style=
 __BRACKET_INIT='%f'
 __BRACKET_DEFAULT=${__BRACKET_INIT}
 
+# Set this to override the terminal title
+MASON_TERM_TITLE="$(hostname -s)"
+
 # Hook function executed before each prompt
 __mason_prompt_precmd() {
     # Set terminal title
     if [[ -z "$INSIDE_EMACS" || "$INSIDE_EMACS" == 'vterm' ]]; then
-        printf '\e]2;%s\a' "$(hostname -s)"
+        printf '\e]2;%s\a' "$MASON_TERM_TITLE"
     fi
 
     # Add a "Operating System Command" for the current directory (for Emacs)
     # https://www.gnu.org/software/emacs/manual/html_node/emacs/Interactive-Shell.html
-    printf '\e]7;file://%s%s\e\\' "${HOSTNAME}" "${PWD}"
+    printf '\e]7;file://%s%s\e\\' "$(hostname -s)" "${PWD}"
 }
 
 # Add to precmd_functions array if not already present
 if (( ${#precmd_functions[@]} == 0 )) || (( ! ${precmd_functions[(Ie)__mason_prompt_precmd]} )); then
     precmd_functions+=(__mason_prompt_precmd)
+fi
+
+# Hook function executed before running a command
+__mason_prompt_preexec() {
+    local full_command="$1"
+    local max_length=30
+    local ellipsis="..."
+    local truncated_cmd
+
+    # If command is longer than max_length, truncate it
+    if [[ ${#full_command} -gt $max_length ]]; then
+        # Reserve space for ellipsis
+        truncated_cmd="${full_command[1,$((max_length-${#ellipsis}))]}"
+        truncated_cmd="${truncated_cmd}${ellipsis}"
+    else
+        truncated_cmd="$full_command"
+    fi
+
+    # Set the terminal title
+    if [[ -z "$INSIDE_EMACS" || "$INSIDE_EMACS" == 'vterm' ]]; then
+        printf '\e]2;%s %% %s\a' "$MASON_TERM_TITLE" "${truncated_cmd}"
+    fi
+}
+
+# Add to preexec_functions array if not already present
+if (( ${#preexec_functions[@]} == 0 )) || (( ! ${preexec_functions[(Ie)__mason_prompt_preexec]} )); then
+    preexec_functions+=(__mason_prompt_preexec)
 fi
 
 _prompt_preview() {
