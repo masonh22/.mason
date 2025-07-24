@@ -1,0 +1,169 @@
+// -*- mode: json-ts -*-
+{
+  "margin-top": 4,
+  "margin-left": 8,
+  "margin-right": 8,
+  "height": 30, // Waybar height (to be removed for auto height)
+  "spacing": 4, // Gaps between modules (4px)
+  // Choose the order of the modules
+  "modules-left": [
+    "niri/window",
+  ],
+  "modules-center": [
+    "niri/workspaces",
+  ],
+  "modules-right": [
+    // "privacy",
+    "network",
+    "pulseaudio",
+    "backlight",
+    // "cpu",
+    // "memory",
+    // "temperature",
+    "battery",
+    "clock",
+    // "tray",
+    "group/group-power"
+  ],
+  // Modules configuration
+  "niri/window": {
+    "format": "{title}",
+    "max-length": 35,
+    "rewrite": {
+      "(.+)": "> $1",
+    }
+  },
+  // "privacy": {
+  //   "icon-spacing": 4,
+  //   "icon-size": 18,
+  //   "transition-duration": 250,
+  //   "modules": [
+  //     {
+  //       "type": "screenshare",
+  //       "tooltip": true,
+  //       "tooltip-icon-size": 24
+  //     },
+  //     {
+  //       "type": "audio-out",
+  //       "tooltip": true,
+  //       "tooltip-icon-size": 24
+  //     },
+  //     {
+  //       "type": "audio-in",
+  //       "tooltip": true,
+  //       "tooltip-icon-size": 24
+  //     }
+  //   ]
+  // },
+  "tray": {
+    // "icon-size": 21,
+    "spacing": 10
+  },
+  "clock": {
+    "interval": 6,
+    "timezone": "America/New_York",
+    "locale": "en_US.UTF-8",
+    "format": "{:%I:%M %p}",
+    "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+    "format-alt": "{:%Y-%m-%d}"
+  },
+  "cpu": {
+    "interval": 10,
+    "format": "{usage}% ",
+    "tooltip": true
+  },
+  "memory": {
+    "interval": 10,
+    "format": "{used:0.1f}G/{total:0.1f}G",
+    "tooltip": false
+  },
+  "temperature": {
+    // "thermal-zone": 2,
+    // "hwmon-path": "/sys/class/hwmon/hwmon2/temp1_input",
+    "critical-threshold": 80,
+    // "format-critical": "{temperatureC}°C {icon}",
+    "format": "{temperatureC}°C",
+  },
+  "backlight": {
+    // "device": "acpi_video1",
+    "format": "{percent}% {icon}",
+    "format-icons": ["🌑", "🌘", "🌗", "🌖", "🌕"]
+  },
+  "battery": {
+    "states": {
+      // "good": 95,
+      "warning": 30,
+      "critical": 15
+    },
+    "format": "{capacity}% {icon}",
+    "format-full": "{capacity}% {icon}",
+    "format-charging": "{capacity}% ",
+    "format-plugged": "{capacity}% ",
+    "format-alt": "{time} {icon}",
+    // "format-good": "", // An empty format will hide the module
+    // "format-full": "",
+    "format-icons": ["", "", "", "", ""]
+  },
+  "network": {
+    "format-wifi": "{signalStrength}% ",
+    "format-ethernet": "{ipaddr}/{cidr} ",
+    "tooltip-format": "{ifname} via {gwaddr}",
+    "format-linked": "{ifname} (No IP) ",
+    "format-disconnected": "⚠",
+    "format-alt": "{ifname}: {ipaddr}/{cidr}"
+  },
+  "pulseaudio": {
+    "scroll-step": 1, // %, can be a float
+    "format": "{volume}% {icon} {format_source}",
+    "format-bluetooth": "{volume}% {icon} {format_source}",
+    "format-bluetooth-muted": " {icon} {format_source}",
+    "format-muted": " {format_source}",
+    "format-source": "{volume}% ",
+    "format-source-muted": "",
+    "format-icons": {
+      "headphone": "",
+      "hands-free": "",
+      "headset": "",
+      "phone": "",
+      "portable": "",
+      "car": "",
+      "default": ["", "", ""]
+    },
+    "on-click": "pavucontrol", // TODO MASON figure out...
+  },
+  "group/group-power": {
+    "orientation": "inherit",
+    "drawer": {
+      "transition-duration": 500,
+      "children-class": "not-power",
+      "transition-left-to-right": false,
+      // "click-to-reveal": true,
+    },
+    "modules": [
+      "custom/power", // First element is the "group leader" and won't ever be hidden
+      "custom/quit",
+      "custom/lock",
+      "custom/reboot",
+    ]
+  },
+  "custom/quit": {
+    "format": " 󰗼 ",
+    "tooltip": false,
+    "on-click": "niri msg action quit"
+  },
+  "custom/lock": {
+    "format": " 󰍁 ",
+    "tooltip": false,
+    "on-click": "swaylock"
+  },
+  "custom/reboot": {
+    "format": " 󰜉 ",
+    "tooltip": false,
+    "on-click": "reboot"
+  },
+  "custom/power": {
+    "format": "  ",
+    "tooltip": false,
+    "on-click": "shutdown now"
+  }
+}
