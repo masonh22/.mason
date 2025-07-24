@@ -3,7 +3,7 @@ dimensions = { columns = 80, lines = 24 }
 opacity = 0.8
 
 [font]
-normal = { family = "Ubuntu Mono", style = "Regular" }
+normal = { family = "terminal-font", style = "Regular" }
 size = 13
 
 [cursor]
