@@ -57,10 +57,10 @@ setup_emacs_early_init
 add_to_rc .bashrc 'MASON_HOME'
 add_to_rc .zshrc 'MASON_HOME'
 
-add_to_config alacritty 'MASON_HOME'
-add_to_config fontconfig 'MASON_HOME'
-add_to_config git 'MASON_HOME'
-add_to_config hypr 'MASON_HOME'
-add_to_config i3 'MASON_HOME'
-add_to_config niri 'MASON_HOME'
-add_to_config waybar 'MASON_HOME'
+add_to_config alacritty
+add_to_config fontconfig
+add_to_config git
+add_to_config hypr
+add_to_config i3
+add_to_config niri
+add_to_config waybar
