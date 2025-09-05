@@ -10,7 +10,7 @@ cd $MASON_HOME
 echo ''
 
 setup_gitconfig() {
-    if ! $no_prompt && [ ! -f git/.gitconfig.local.copy.home ]; then
+    if ! $no_prompt && [ ! -f ~/.gitconfig.local ]; then
         user 'setup .gitconfig? y/N'
         read -e do_gitconfig
         case "$do_gitconfig" in
@@ -27,7 +27,7 @@ setup_gitconfig() {
         user ' - Enter git author email'
         read -e git_email
 
-        sed -e "s/TEMPLATE_NAME/$git_name/" -e "s/TEMPLATE_EMAIL/$git_email/" git/gitconfig.local.base > git/.gitconfig.local.copy.home || exit
+        sed -e "s/TEMPLATE_NAME/$git_name/" -e "s/TEMPLATE_EMAIL/$git_email/" gitconfig.local.base > ~/.gitconfig.local || exit
 
         success 'gitconfig'
     fi
@@ -57,4 +57,10 @@ setup_emacs_early_init
 add_to_rc .bashrc 'MASON_HOME'
 add_to_rc .zshrc 'MASON_HOME'
 
+add_to_config alacritty 'MASON_HOME'
+add_to_config fontconfig 'MASON_HOME'
+add_to_config git 'MASON_HOME'
+add_to_config hypr 'MASON_HOME'
 add_to_config i3 'MASON_HOME'
+add_to_config niri 'MASON_HOME'
+add_to_config waybar 'MASON_HOME'

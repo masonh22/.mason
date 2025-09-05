@@ -31,9 +31,8 @@ To install the dotfiles on a new machine, run the `install` script:
   - `packages-mason.el`: Package configurations.
   - `setup-mason.el`: Setup script for Emacs.
 
-- **git/**: Contains Git configuration files.
-  - `.gitconfig.symlink.home`: Symlink for Git configuration.
-  - `gitconfig.local.base`: Local Git configuration configuration template.
+- **config/**: Contains XDG configuration files.
+  - Each subdirectory of this will be symlinked to `${XDG_CONFIG_HOME}` (or `~/.config`)
 
 - **scripts/**: Contains utility scripts.
   - `build-git-tools.ml`: Script to build and install Git tools. (I don't really use this anymore).

@@ -188,35 +188,23 @@ add_to_rc() {
     fi
 }
 
+# TODO: this should really symlink the contents of the directory, not the whole
+# directory.
 add_to_config() {
     CONFIG_NAME="$1"
-    ENV_HOME_NAME="$2"
-    if [ -z "${CONFIG_NAME}" ] || [ -z "${ENV_HOME_NAME}" ]; then
-        echo 'Usage: add_to_config <config-name> <project-name>'
+    if [ -z "${CONFIG_NAME}" ]; then
+        echo 'Usage: add_to_config <config-name>'
         return 1
     fi
 
-    CONFIG_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/${CONFIG_NAME}"
-    if [ -d "${CONFIG_DIR}" ] && ! grep -r "${ENV_HOME_NAME}" "${CONFIG_DIR}" > /dev/null 2>&1; then
-        if $no_prompt; then
-            yes_no=y
-        else
-            user "Add '${ENV_HOME_NAME}' to ~/.config/${CONFIG_NAME}? [Y/n]"
-            read -e yes_no
-        fi
-        case "$yes_no" in
-            n*|N*)
-                success "Skipped modifying ~/.config/${CONFIG_NAME}"
-                ;;
-            *)
-                echo '' >> ${CONFIG_DIR}/config
-                echo "include ${ENV_HOME_NAME}/${CONFIG_NAME}/config" >> ${HOME}/${CONFIG_NAME}
-                success "Modified ~/.config/${CONFIG_NAME}"
-                ;;
-        esac
-    else
-        success "~/.config/${CONFIG_NAME} is already configured"
+    src="${INSTALL_HOME}/config/${CONFIG_NAME}"
+    if [ ! -d "$src" ]; then
+        echo "'${CONFIG_NAME}' does not exist in config/"
+        return 1
     fi
+
+    dst="${XDG_CONFIG_HOME:-${HOME}/.config}/${CONFIG_NAME}"
+    install_action 'ln -s' "$src" "$dst"
 }
 
 add_to_bashrc() {
