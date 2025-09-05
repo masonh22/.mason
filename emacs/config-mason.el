@@ -17,6 +17,11 @@
   (scroll-bar-mode -1))
 (menu-bar-mode -1)
 
+(when (display-graphic-p)
+  (set-face-attribute 'default nil
+                      :family "monospace"
+                      :height 130))
+
 ;; use utf-8 in terminals
 (set-terminal-coding-system 'utf-8)
 
