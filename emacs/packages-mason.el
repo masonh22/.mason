@@ -420,3 +420,6 @@
 
 (use-package latex-preview-pane
   :defer t)
+
+(use-package nix-ts-mode
+  :defer t)
