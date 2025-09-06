@@ -64,3 +64,4 @@ add_to_config hypr
 add_to_config i3
 add_to_config niri
 add_to_config waybar
+add_to_config htop
