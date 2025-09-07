@@ -30,6 +30,23 @@
   :defer t
   :hook (after-init . solaire-global-mode))
 
+(use-package perspective
+  :bind
+  ("C-x C-b" . persp-list-buffers)
+  :custom
+  (persp-mode-prefix-key (kbd "C-c p"))
+  (persp-sort 'access)
+  (persp-modestring-short t)
+  :hook
+  (after-init . (lambda ()
+                  (persp-mode)
+                  ;; For consult: only show buffers in the current perspective.
+                  ;; Note that narrowing (`b SPC`) will still show all buffers.
+                  (with-eval-after-load 'consult
+                    (consult-customize consult--source-buffer :hidden t :default nil)
+                    (add-to-list 'consult-buffer-sources persp-consult-source)))))
+
+
 (use-package hl-todo
   :defer t
   :hook (after-init . global-hl-todo-mode)
@@ -186,7 +203,13 @@
   ;; (setq tab-always-indent 'complete)
 
   ;; TAB cycle if there are only few candidates
-  (setq completion-cycle-threshold 3))
+  (setq completion-cycle-threshold 3)
+
+  ;; Tell emacs to avoid breaking window layouts
+  (setopt display-buffer-base-action
+          '((display-buffer-reuse-window display-buffer-same-window)
+            (reusable-frames . t)))
+  (setopt even-window-sizes nil))
 
 ;; use the `orderless' completion style.
 (use-package orderless
@@ -358,8 +381,8 @@
      projectile-root-marked
      projectile-root-bottom-up))
   (projectile-indexing-method 'alien)
-  ;; :bind-keymap ("C-c p" . projectile-command-map)
-  )
+  :bind-keymap
+  ("C-x p" . projectile-command-map))
 
 (use-package haskell-mode
   :defer t)

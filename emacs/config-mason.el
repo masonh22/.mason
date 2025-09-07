@@ -148,31 +148,42 @@
 #+title: Scratch buffer
 
 ")
-  "Initial message displayed in the *org* buffer at startup.
-If this is nil, no message will be displayed.")
+  "The message to display in the initial '*org*' buffer"
+  :type 'string
+  :group 'startup)
 
-(defun get-org-buffer-create ()
-  "Return an *org* buffer, creating a new one if needed."
-  (or (get-buffer "*org*")
-      (let ((org-buffer (get-buffer-create "*org*")))
-        (with-current-buffer org-buffer
-          (when initial-org-message
-            (insert initial-org-message)
-            (set-buffer-modified-p nil))
-          (org-mode))
-        org-buffer)))
+(defun create-org-buffer (&optional name)
+  "Create an return the '*org*' buffer."
+  (let ((org-buffer (get-buffer-create
+                     (concat "*org*" (when name (format " (%s)" name))))))
+    (with-current-buffer org-buffer
+      (org-mode)
+      (insert initial-org-message)
+      (goto-char (point-max))
+      (set-buffer-modified-p nil))
+    org-buffer))
 
 (defun init-org-buffer ()
-  "Create the *org* buffer if it doesn't exist and switch to it if the
-current buffer is *scratch*.
+  "Create the '*org' buffer and switch to it if the current buffer is
+'*scratch'.
 
-This is useful for changing the 'default' buffer from *scratch* to *org*."
-  (let ((org-buffer (get-org-buffer-create)))
+This is intended to be called from 'after-init-hook'."
+  (let ((org-buffer (create-org-buffer)))
     (when (string= (buffer-name) "*scratch*")
       (switch-to-buffer org-buffer))))
 
-(add-hook 'after-init-hook
-          'init-org-buffer)
+(add-hook 'after-init-hook 'init-org-buffer)
+
+;; Also create the org buffer when using perspective
+(with-eval-after-load 'perspective
+  (defun persp-init-org-buffer ()
+    "Create and switch to the '*org*' buffer, unless this is the initial
+perspective."
+    (let ((name (persp-name (persp-curr))))
+      (unless (string= name persp-initial-frame-name)
+        (persp-setup-for name
+          (switch-to-buffer (create-org-buffer name))))))
+  (add-hook 'persp-created-hook 'persp-init-org-buffer))
 
 (defun enable-superword-in-find-file ()
   "Enable superword-mode in the minibuffer for find-file.
