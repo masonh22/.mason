@@ -6,6 +6,12 @@ if [ -x /usr/bin/dircolors ]; then
     alias grep='grep --color=auto -I'
     alias fgrep='fgrep --color=auto'
     alias egrep='egrep --color=auto'
+elif [ "$(uname)" = 'Darwin' ]; then
+    alias ls='ls --color=auto'
+
+    alias grep='grep --color=auto -I'
+    alias fgrep='fgrep --color=auto'
+    alias egrep='egrep --color=auto'
 fi
 
 # emacs

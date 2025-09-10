@@ -12,3 +12,6 @@
     ))
 
 ;; (mason-avoid-initial-flash-of-light)
+
+;; For MacOS: use a transparent titlebar
+(add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
