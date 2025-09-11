@@ -23,6 +23,11 @@ export VERSION_CONTROL="never"
 # tell cmake to make compile_commands.json for clangd
 export CMAKE_EXPORT_COMPILE_COMMANDS=1
 
+# Projects directory
+if [ -d "$HOME/Projects" ]; then
+    export PROJECTS="$HOME/Projects"
+fi
+
 # only do next part once
 if [ -n "${MASON_ENV_INIT_COMPLETE}" ]; then
     return 0

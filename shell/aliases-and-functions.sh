@@ -32,6 +32,15 @@ alias rm='rm -v'
 alias '..'='cd ..'
 alias '...'='cd ../..'
 
+cdp() {
+    if [ -n "$PROJECTS" ]; then
+        cd "$PROJECTS/$1"
+    else
+        echo 'PROJECTS environment variable not set'
+        exit 1
+    fi
+}
+
 # bat/batcat
 if [ -x "$(command -v batcat)" ]; then
    alias bat=batcat

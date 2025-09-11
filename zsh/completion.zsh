@@ -23,3 +23,12 @@ _my_make_targets() {
     compadd $(_make_print_targets)
 }
 compdef _my_make_targets make
+
+_cdp_list() {
+    if [ -z "$PROJECTS" ]; then
+        return
+    fi
+
+    _arguments "1:subdir of Projects:_path_files -W '$PROJECTS'"
+}
+compdef _cdp_list cdp
