@@ -46,7 +46,6 @@
                     (consult-customize consult--source-buffer :hidden t :default nil)
                     (add-to-list 'consult-buffer-sources persp-consult-source)))))
 
-
 (use-package hl-todo
   :defer t
   :hook (after-init . global-hl-todo-mode)
