@@ -203,13 +203,7 @@
   ;; (setq tab-always-indent 'complete)
 
   ;; TAB cycle if there are only few candidates
-  (setq completion-cycle-threshold 3)
-
-  ;; Tell emacs to avoid breaking window layouts
-  (setopt display-buffer-base-action
-          '((display-buffer-reuse-window display-buffer-same-window)
-            (reusable-frames . t)))
-  (setopt even-window-sizes nil))
+  (setq completion-cycle-threshold 3))
 
 ;; use the `orderless' completion style.
 (use-package orderless
