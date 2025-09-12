@@ -43,7 +43,7 @@ setup_emacs_early_init() {
     src=${MASON_HOME}/emacs/early-init.el
     dst=${EMACS_HOME}/early-init.el
 
-    install_symlink "$src" "$dst"
+    install_action 'ln -s' "$src" "$dst"
 }
 
 setup_gitconfig
@@ -59,9 +59,10 @@ add_to_rc .zshrc 'MASON_HOME'
 
 add_to_config alacritty
 add_to_config fontconfig
+add_to_config ghostty
 add_to_config git
+add_to_config htop
 add_to_config hypr
 add_to_config i3
 add_to_config niri
 add_to_config waybar
-add_to_config htop

@@ -1,0 +1,13 @@
+font-family = UbuntuMono Nerd Font
+font-size = 13
+font-feature = -calt -liga -dlig
+
+theme = gnome-terminal
+background-opacity = 0.8
+background-blur = true
+
+cursor-style = block
+shell-integration-features = no-cursor
+
+window-height = 24
+window-width = 80
