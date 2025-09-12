@@ -1,6 +1,7 @@
 [window]
 dimensions = { columns = 80, lines = 24 }
 opacity = 0.8
+blur = true
 
 [font]
 normal = { family = "terminal-font", style = "Regular" }
