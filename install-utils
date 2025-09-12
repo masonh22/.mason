@@ -189,8 +189,8 @@ add_to_rc() {
     fi
 }
 
-# TODO: this should really symlink the contents of the directory, not the whole
-# directory.
+# Symlink the contents of a directory ($1) in the config/ subdirectory of this
+# project to $XDG_CONFIG_HOME/$1
 add_to_config() {
     CONFIG_NAME="$1"
     if [ -z "${CONFIG_NAME}" ]; then
@@ -198,14 +198,18 @@ add_to_config() {
         return 1
     fi
 
-    src="${INSTALL_HOME}/config/${CONFIG_NAME}"
-    if [ ! -d "$src" ]; then
-        echo "'${CONFIG_NAME}' does not exist in config/"
+    config_src="${INSTALL_HOME}/config/${CONFIG_NAME}"
+    if [ ! -d "$config_src" ]; then
+        echo "'${CONFIG_NAME}' is not a directory in config/"
         return 1
     fi
 
-    dst="${XDG_CONFIG_HOME:-${HOME}/.config}/${CONFIG_NAME}"
-    install_action 'ln -s' "$src" "$dst"
+    config_dst="${XDG_CONFIG_HOME:-${HOME}/.config}/${CONFIG_NAME}"
+    mkdir -p "$config_dst"
+    for src_file in "$config_src"/*; do
+        dst_file="${config_dst}/$(basename $src_file)"
+        install_action 'ln -s' "$src_file" "$dst_file"
+    done
 }
 
 add_to_bashrc() {
