@@ -72,6 +72,7 @@
     (eglot-ignored-server-capabilities
      '(:hoverProvider
        :inlayHintProvider))
+    (eglot-autoshutdown t)
     :hook
     ((c-ts-mode . eglot-ensure)
      (c++-ts-mode . eglot-ensure)

@@ -24,6 +24,19 @@ alias ekill='eeval "(kill-emacs)"'
 alias gst='git status'
 alias gc='git commit'
 alias gd='git diff'
+# kubectl
+alias kcg="kubectl config get-contexts"
+alias kcu="kubectl config use-context"
+alias kg="kubectl get"
+alias kgp="kubectl get pods"
+alias kgd="kubectl get deployment"
+alias kgs="kubectl get sts"
+alias kd="kubectl describe"
+alias kdp="kubectl describe pod"
+alias kdd="kubectl describe deployment"
+alias kds="kubectl describe sts"
+alias k="kubectl"
+alias kc="kubectl config set-context --current --namespace"
 # commands
 alias fd='fd --hidden'
 alias rg='rg --with-filename --no-heading --hidden'

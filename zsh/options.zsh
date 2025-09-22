@@ -5,6 +5,7 @@ set -o INC_APPEND_HISTORY_TIME # write to the hist file after commands finish
 set -o HIST_FIND_NO_DUPS # ignore dups when searching
 set -o HIST_REDUCE_BLANKS # don't store blank lines
 set -o HIST_IGNORE_DUPS # ignore consecutive commands in history
+set -o HIST_IGNORE_SPACE # ignore lines that start with a space
 set +o BEEP # disable bell
 
 setopt prompt_subst # Enable prompt substitution
