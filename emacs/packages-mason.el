@@ -147,6 +147,23 @@
   (vertico-cycle t)
   )
 
+(use-package tempel
+  :custom
+  (tempel-trigger-prefix "<")
+  (tempel-path (format "%s/templates/*.eld" setup-mason-dir))
+  :config
+  (defun tempel-setup-capf ()
+    (setq-local completion-at-point-functions
+                (cons #'tempel-complete
+                      completion-at-point-functions)))
+  (defun tempel-setup-exclusive-capf ()
+    (setq-local completion-at-point-functions
+                '(tempel-complete)))
+  :hook
+  (org-mode . tempel-setup-exclusive-capf)
+  (rust-ts-mode . tempel-setup-capf)
+  (sh-base-mode . tempel-setup-capf))
+
 (use-package corfu
   ;; Optional customizations
   :custom
@@ -164,7 +181,9 @@
    (rust-ts-mode)
    (tsx-ts-mode)
    (typescript-ts-mode)
-   (tuareg-mode))
+   (tuareg-mode)
+   (sh-base-mode)
+   (org-mode))
   :bind
   (:map corfu-map
         ;; Use tab to enter completion

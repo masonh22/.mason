@@ -254,7 +254,8 @@ add_to_emacs() {
                 ;;
             *)
                 echo '' >> ${EMACS_HOME}/init.el
-                echo "(add-to-list 'load-path \"${INSTALL_HOME}/emacs/\")" >> ${EMACS_HOME}/init.el
+                echo "(setq ${EMACS_PACKAGE_NAME}-dir \"${INSTALL_HOME}/emacs\")" >> ${EMACS_HOME}/init.el
+                echo "(add-to-list 'load-path ${EMACS_PACKAGE_NAME})" >> ${EMACS_HOME}/init.el
                 echo "(require '${EMACS_PACKAGE_NAME})" >> ${EMACS_HOME}/init.el
                 success "Modified ${EMACS_HOME}/init.el"
                 ;;
