@@ -205,11 +205,8 @@ add_to_config() {
     fi
 
     config_dst="${XDG_CONFIG_HOME:-${HOME}/.config}/${CONFIG_NAME}"
-    mkdir -p "$config_dst"
-    for src_file in "$config_src"/*; do
-        dst_file="${config_dst}/$(basename $src_file)"
-        install_action 'ln -s' "$src_file" "$dst_file"
-    done
+
+    install_action 'cp -rs' "${config_src}/" "$config_dst"
 }
 
 add_to_bashrc() {
