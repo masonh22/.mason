@@ -423,3 +423,79 @@
 
 (use-package nix-ts-mode
   :defer t)
+
+(use-package cursory
+  :vc (:url "https://github.com/masonh22/cursory.git"
+            :rev :newest)
+  :custom
+  (cursory-presets
+   '((t ;; default
+      :cursor-type box
+      :cursor-color nil
+      :blink-cursor-mode 1
+      :blink-cursor-blinks 10
+      :blink-cursor-interval 0.5
+      :blink-cursor-delay 0.5
+      :cursor-in-non-selected-windows t)
+     (bar
+      :cursor-type (bar . 2))
+     (incarnate
+      :inherit bar)
+     (god
+      :cursor-color "magenta"
+      :blink-cursor-mode -1)))
+  :hook
+  (after-init . (lambda () (cursory-set-preset 't))))
+
+(use-package god-mode
+  :custom
+  (god-mode-enable-function-key-translation nil)
+  :bind
+  ("<escape>" . god-mode-all)
+  (:map god-local-mode-map
+        ("i" . incarnate)
+        ("[" . backward-paragraph)
+        ("]" . forward-paragraph)
+        ("r" . replace-string))
+  ("C-x C-1" . delete-other-windows)
+  ("C-x C-2" . split-window-below)
+  ("C-x C-3" . split-window-right)
+  ("C-x C-0" . delete-window)
+  ("C-x C-o" . other-window)
+  ("C-x C-b" . consult-buffer)
+  :config
+  ;; see https://idiomdrottning.org/on-top-of-emacs-god-mode
+  (defun incarnate ()
+    (interactive)
+    (when (bound-and-true-p god-local-mode)
+      (incarnate-mode)
+      ;; HACK: cursor color and blink can't be set locally
+      (setq cursor-color-is-dirty t)
+      (god-local-mode 0)
+      (cursory-set-local-preset 'incarnate)))
+  (defun unincarnate (&optional from-hook)
+    (interactive)
+    (cond ((bound-and-true-p incarnate-mode)
+           (setq cursor-color-is-dirty nil)
+           (incarnate-mode -1)
+           (god-local-mode 1))
+          ((and from-hook (bound-and-true-p cursor-color-is-dirty))
+           ;; HACK: revert global properties modified by incarnate
+           (setq cursor-color-is-dirty nil)
+           (let* ((styles (cursory--get-preset-properties 'god))
+                  (color-value (plist-get styles :cursor-color))
+                  (blink (plist-get styles :blink-cursor-mode)))
+             (cursory--set-cursor color-value)
+             (blink-cursor-mode blink)))))
+  (define-minor-mode incarnate-mode
+    "As normal but toggle to God mode on RET"
+    :lighter " God-Inc"
+    :keymap '(("\r" . unincarnate)))
+  ;; Exit incarnate mode when switching buffers
+  (add-hook 'window-selection-change-functions 'unincarnate)
+  :hook
+  (god-mode-enabled . (lambda ()
+                        (cursory-set-preset 'god)))
+  (god-mode-disabled . (lambda ()
+                         (unless (bound-and-true-p cursor-color-is-dirty)
+                           (cursory-set-preset 't)))))
