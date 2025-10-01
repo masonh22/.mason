@@ -45,6 +45,11 @@ alias rm='rm -v'
 alias '..'='cd ..'
 alias '...'='cd ../..'
 
+# bat/batcat
+if [ -x "$(command -v batcat)" ]; then
+   alias bat=batcat
+fi
+
 cdp() {
     if [ -n "$PROJECTS" ]; then
         cd "$PROJECTS/$1"
@@ -54,7 +59,18 @@ cdp() {
     fi
 }
 
-# bat/batcat
-if [ -x "$(command -v batcat)" ]; then
-   alias bat=batcat
+if [ -x "$(command -v aws)" ]; then
+    # Refresh AWS SSO credentials if they're expired
+    refresh-sso() {
+        if [ -n "$1" ]; then
+            __aws_profile="--profile '$1'"
+        fi
+
+        if ! aws sts get-caller-identity $__aws_profile > /dev/null 2>&1; then
+            echo "Running 'aws sso login $__aws_profile'"
+            aws sso login $__aws_profile
+        else
+            echo 'Credentials are valid'
+        fi
+    }
 fi
