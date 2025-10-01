@@ -468,10 +468,10 @@
   (defun incarnate ()
     (interactive)
     (when (bound-and-true-p god-local-mode)
+      (god-local-mode 0)
       (incarnate-mode)
       ;; HACK: cursor color and blink can't be set locally
       (setq cursor-color-is-dirty t)
-      (god-local-mode 0)
       (cursory-set-local-preset 'incarnate)))
   (defun unincarnate (&optional from-hook)
     (interactive)
@@ -490,7 +490,8 @@
   (define-minor-mode incarnate-mode
     "As normal but toggle to God mode on RET"
     :lighter " God-Inc"
-    :keymap '(("\r" . unincarnate)))
+    :keymap '(("\r" . unincarnate)
+              ("<escape>" . unincarnate)))
   ;; Exit incarnate mode when switching buffers
   (add-hook 'window-selection-change-functions 'unincarnate)
   :hook
