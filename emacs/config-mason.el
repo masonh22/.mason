@@ -28,6 +28,9 @@
 ;; disable backup files
 (setq make-backup-files nil)
 
+;; don't put custom-set-variables or custom-set-faces anywhere important
+(setq custom-file "/dev/null")
+
 ;; closing a client instance that started on a file won't kill that buffer
 ;; TODO make sure C-x # still kills that buffer!
 ;; (setq server-kill-new-buffers nil)
