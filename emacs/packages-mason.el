@@ -467,6 +467,9 @@
   ;; see https://idiomdrottning.org/on-top-of-emacs-god-mode
   (defun incarnate ()
     (interactive)
+    (cl-assert (bound-and-true-p god-local-mode) "incarnate mode outside of god mode!")
+    (cl-assert (not (bound-and-true-p incarnate-mode)) "recursive incarnate mode!")
+    (cl-assert (not (bound-and-true-p cursor-color-is-dirty)) "incarnate cursor is dirty!")
     (when (bound-and-true-p god-local-mode)
       (god-local-mode 0)
       (incarnate-mode)
@@ -491,7 +494,7 @@
     "As normal but toggle to God mode on RET"
     :lighter " God-Inc"
     :keymap '(("\r" . unincarnate)
-              ("<escape>" . unincarnate)))
+              ([escape] . unincarnate)))
   ;; Exit incarnate mode when switching buffers
   (add-hook 'window-selection-change-functions 'unincarnate)
   :hook
