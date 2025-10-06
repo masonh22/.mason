@@ -395,7 +395,9 @@
   ("C-=" . er/expand-region))
 
 (use-package magit
-  :defer t)
+  :defer t
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 ;; emacs start-up profiler
 (use-package esup
