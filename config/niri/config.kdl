@@ -221,6 +221,7 @@ cursor {
 spawn-at-startup "waybar" "--config" "/home/mason/.config/waybar/niri.json"
 spawn-at-startup "hypridle"
 spawn-at-startup "hyprpaper"
+spawn-at-startup "hyprsunset"
 
 // Uncomment this line to ask the clients to omit their client-side decorations if possible.
 // If the client will specifically ask for CSD, the request will be honored.
