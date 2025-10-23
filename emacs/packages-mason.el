@@ -459,7 +459,8 @@
         ("i" . incarnate)
         ("[" . backward-paragraph)
         ("]" . forward-paragraph)
-        ("r" . replace-string))
+        ("r" . replace-string)
+        ("O" . spacer))
   ("C-x C-1" . delete-other-windows)
   ("C-x C-2" . split-window-below)
   ("C-x C-3" . split-window-right)
@@ -468,6 +469,9 @@
   ("C-x C-b" . consult-buffer)
   :config
   ;; see https://idiomdrottning.org/on-top-of-emacs-god-mode
+  (defun spacer (times)
+    (interactive "p")
+    (dotimes (x times) (insert " ")))
   (defun incarnate ()
     (interactive)
     (cl-assert (bound-and-true-p god-local-mode) "incarnate mode outside of god mode!")
