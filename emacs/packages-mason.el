@@ -121,6 +121,18 @@
   :custom
   (undo-tree-auto-save-history 'nil))
 
+(use-package avy
+  :defer t
+  :bind
+  ("C-:" . avy-goto-char)
+  ("C-'" . avy-goto-char-2))
+
+(use-package spatial-navigate
+  :defer t
+  :bind
+  ("M-<up>" . 'spatial-navigate-backward-vertical-bar)
+  ("M-<down>" . 'spatial-navigate-forward-vertical-bar))
+
 (use-package ace-window
   :defer 1
   :bind
@@ -399,6 +411,13 @@
   :custom
   (magit-define-global-key-bindings 'recommended)
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+(use-package with-editor
+  :defer t
+  :hook
+  ((shell-mode
+    eshell-mode
+    vterm-mode) . with-editor-export-editor))
 
 ;; emacs start-up profiler
 (use-package esup
