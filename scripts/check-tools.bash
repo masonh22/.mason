@@ -11,9 +11,10 @@ essentials=(
 )
 
 extras=(
-    batcat
+    bat
     fd
     rg
+    fzf
 )
 
 languages=(

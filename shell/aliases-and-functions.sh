@@ -46,9 +46,35 @@ alias '..'='cd ..'
 alias '...'='cd ../..'
 
 # bat/batcat
-if [ -x "$(command -v batcat)" ]; then
+if command -v batcat > /dev/null 2>&1; then
    alias bat=batcat
 fi
+
+# copy
+if command -v wl-copy > /dev/null 2>&1; then
+    alias copy='wl-copy'
+    alias cpwd='pwd | tr -d "\n" | wl-copy'
+elif command -v pbcopy > /dev/null 2>&1; then
+    alias copy='pbcopy'
+    alias cpwd='pwd | tr -d "\n" | pbcopy'
+fi
+
+# paste
+if command -v wl-paste > /dev/null 2>&1; then
+    alias paste='wl-paste'
+elif command -v pbpaste > /dev/null 2>&1; then
+    alias paste='pbpaste'
+fi
+
+mkcd() {
+    mkdir -p "$1"
+    cd "$1"
+}
+
+tempe() {
+    cd "$(mktemp -d)"
+    chmod -R 0700 .
+}
 
 cdp() {
     if [ -n "$PROJECTS" ]; then
