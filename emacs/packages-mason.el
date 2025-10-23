@@ -133,6 +133,13 @@
   ("M-<up>" . 'spatial-navigate-backward-vertical-bar)
   ("M-<down>" . 'spatial-navigate-forward-vertical-bar))
 
+;; (use-package buffer-name-relative
+;;   :init
+;;   (buffer-name-relative-mode)
+;;   :custom
+;;   (buffer-name-relative-prefix '("<" . ">/"))
+;;   (buffer-name-relative-fallback nil))
+
 (use-package ace-window
   :defer 1
   :bind
