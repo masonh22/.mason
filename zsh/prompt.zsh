@@ -1,5 +1,3 @@
-#!/bin/zsh
-
 # To add one or more prompts, write a function to add prompt strings to
 # [prompts] (and optionally bracket colors to [brackets]), then add this
 # generating function to prompt_gen.
