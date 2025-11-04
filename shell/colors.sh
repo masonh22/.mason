@@ -3,8 +3,7 @@
 # Returns 0 iff the color is good
 color_is_good_for_prompt() {
     input_color="$1"
-    bad_colors="0 7 15 16 17 18 19 20 195 187 224 225 230 231 232 233 234 235 236 \
-237 238 239 240 241 242 252 253 254 255"
+    bad_colors=(0 7 15 16 17 18 19 20 195 187 224 225 230 231 232 233 234 235 236 237 238 239 240 241 242 252 253 254 255)
     for bad_color in ${bad_colors}; do
         if [ "${input_color}" = "${bad_color}" ]; then
             return 1 # hide it
@@ -32,6 +31,12 @@ good_color_for_number() {
             echo -n "$((32 + ${input_color} % 5))"
         fi
     fi
+}
+
+color_number() {
+    text="$1"
+    texthash=$(cksum <<< "${text}" | cut -d ' ' -f 1)
+    echo "$((${texthash} % 256))"
 }
 
 choose_color() {
@@ -83,7 +88,7 @@ show_colors() {
         expanded)
             for i in $(seq 0 255); do
                 printf "\e[38;5;%dm %3d \e[0m" $i $i
-                if [ $(($i % 10)) -eq 0 ]; then echo; fi
+                if [ $(($i % 10)) -eq 9 ]; then echo; fi
             done
             echo
             ;;
@@ -91,7 +96,7 @@ show_colors() {
             for i in $(seq 0 255); do
                 printf "\e[%sm %3d \e[0m" \
                        $(good_color_for_number $i) $i
-                if [ $(($i % 10)) -eq 0 ]; then echo; fi
+                if [ $(($i % 10)) -eq 9 ]; then echo; fi
             done
             echo
             ;;
