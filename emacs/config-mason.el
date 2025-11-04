@@ -255,3 +255,18 @@ The DWIM behaviour of this command is as follows:
     ;; Only add if it's not already in the PATH
     (unless (string-match-p (regexp-quote local-bin) current-path)
       (setenv "PATH" (concat local-bin ":" current-path)))))
+
+(defun unfill-paragraph ()
+  "Unfill the current paragraph by setting a large fill-column and calling
+fill-paragraph."
+  (interactive)
+  (let ((fill-column (point-max))) ; Use the end of the buffer as the column limit
+    (fill-paragraph nil)))
+
+(global-set-key (kbd "C-M-q") 'unfill-paragraph)
+
+;; (setopt display-buffer-base-action
+;;   '((display-buffer-reuse-window display-buffer-same-window)
+;;     (reusable-frames . t)))
+
+;; (setopt even-window-sizes nil) ; avoid resizing
