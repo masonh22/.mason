@@ -81,4 +81,8 @@ if which -v > /dev/null 2>&1 \
     alias which="alias | $(which which) --tty-only --read-alias --show-dot --show-tilde"
 fi
 
+# if [ "$(uname)" = 'Darwin' ]; then
+#     ssh-add --apple-load-keychain -q
+# fi
+
 MASON_ENV_INIT_COMPLETE=true
