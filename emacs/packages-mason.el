@@ -78,7 +78,8 @@
      (c++-ts-mode . eglot-ensure)
      (typescript-ts-mode . eglot-ensure)
      (tsx-ts-mode . eglot-ensure)
-     (rust-ts-mode . eglot-ensure)))
+     (rust-ts-mode . eglot-ensure)
+     (tuareg-mode . eglot-ensure)))
 
   (use-package treesit
     :ensure nil
@@ -392,8 +393,7 @@
   (setq tuareg-match-patterns-aligned t)
   (setq tuareg-mode-name "🐫")
   :hook
-  (tuareg-mode . set-ocaml-error-regexp)
-  (tuareg-mode . eglot-ensure))
+  (tuareg-mode . set-ocaml-error-regexp))
 
 ;; Major mode for editing Dune project files
 (use-package dune
