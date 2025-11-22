@@ -110,6 +110,16 @@
   (org-default-notes-file (concat org-directory "/notes.org"))
   (org-hide-leading-stars t))
 
+(use-package tab-line
+  :ensure nil
+  :hook
+  (after-init . global-tab-line-mode)
+  :bind
+  ("C-<tab>" . tab-line-switch-to-next-tab)
+  ("C-S-<tab>" . tab-line-switch-to-prev-tab)
+  ;; ("C-c x" . tab-line-close-tab)
+  )
+
 (use-package rainbow-delimiters
   :defer t
   :hook
