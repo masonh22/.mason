@@ -103,9 +103,12 @@
 
 (use-package org
   :ensure nil
+  ;; :hook
+  ;; (org-mode . org-indent-mode)
   :custom
   (org-directory "~/Notes/org")
-  (org-default-notes-file (concat org-directory "/notes.org")))
+  (org-default-notes-file (concat org-directory "/notes.org"))
+  (org-hide-leading-stars t))
 
 (use-package rainbow-delimiters
   :defer t
