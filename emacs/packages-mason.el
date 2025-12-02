@@ -110,8 +110,11 @@
   (org-default-notes-file (concat org-directory "/notes.org"))
   (org-hide-leading-stars t))
 
+;; setq-local tab-line-exclude in *scratch* and *org* buffer
 (use-package tab-line
   :ensure nil
+  :custom
+  (tab-line-new-button-show nil)
   :hook
   (after-init . global-tab-line-mode)
   :bind
@@ -119,6 +122,13 @@
   ("C-S-<tab>" . tab-line-switch-to-prev-tab)
   ;; ("C-c x" . tab-line-close-tab)
   )
+
+(use-package org-roam
+  :custom
+  (org-roam-directory "~/Notes/roam")
+  (org-roam-mode-selections
+   '((org-roam-backlinks-section :unique t)
+    org-roam-reflinks-section)))
 
 (use-package rainbow-delimiters
   :defer t
