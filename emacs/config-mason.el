@@ -29,7 +29,7 @@
 (setq make-backup-files nil)
 
 ;; don't put custom-set-variables or custom-set-faces anywhere important
-(setq custom-file "/dev/null")
+(setq custom-file (make-temp-file "emacs-custom-"))
 
 ;; closing a client instance that started on a file won't kill that buffer
 ;; TODO make sure C-x # still kills that buffer!
