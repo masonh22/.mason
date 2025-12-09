@@ -120,8 +120,37 @@
   :bind
   ("C-<tab>" . tab-line-switch-to-next-tab)
   ("C-S-<tab>" . tab-line-switch-to-prev-tab)
-  ;; ("C-c x" . tab-line-close-tab)
-  )
+  ("C-c w" . tab-line-close-current-tab)
+  :config
+  (defun tab-line-close-current-tab ()
+    "Close the currently selected tab in tab-line-mode.  This mimics the
+behavior of `tab-line-close-tab' but works on the current buffer without
+requiring a mouse event."
+    (interactive)
+    (let* ((buffer (current-buffer))
+           ;; Get the list of tabs currently displayed
+           (tabs (funcall tab-line-tabs-function))
+           ;; Find the specific tab object corresponding to the current buffer.
+           ;; Tabs can be raw buffers or alists (e.g. if using grouping).
+           (tab (seq-find (lambda (tab)
+                            (eq buffer
+                                (if (bufferp tab)
+                                    tab
+                                  (cdr (assq 'buffer tab)))))
+                          tabs))
+           (close-function (unless (bufferp tab) (cdr (assq 'close tab)))))
+      (cond
+       ((not tab)
+        (message "Current buffer is not in the tab line"))
+       ((functionp close-function)
+        (funcall close-function))
+       ((eq tab-line-close-tab-function 'kill-buffer)
+        (kill-buffer buffer))
+       ((eq tab-line-close-tab-function 'bury-buffer)
+        (bury-buffer))
+       ((functionp tab-line-close-tab-function)
+        (funcall tab-line-close-tab-function tab))))
+    (force-mode-line-update)))
 
 (use-package org-roam
   :custom
