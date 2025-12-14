@@ -4,6 +4,7 @@
 # probably be better for this, but it's pretty heavy-duty.
 
 essentials=(
+    alacritty
     curl
     emacs
     git
@@ -13,8 +14,9 @@ essentials=(
 extras=(
     bat
     fd
-    rg
     fzf
+    rg
+    tailscale
 )
 
 languages=(
