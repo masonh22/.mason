@@ -64,9 +64,10 @@
                  '((c++-mode c-mode) . ("clangd" "--header-insertion=never")))
     (add-to-list 'eglot-server-programs
                  '((rust-ts-mode) . ("rust-analyzer" :initializationOptions
-                                     ( :check (:command "clippy")
+                                     ( :check (:command "check")
                                        :procMacro (:enable t)
                                        :cargo ( :buildScripts (:enable t)
+                                                :targetDir t
                                                 :features "all")))))
     :custom
     (eglot-ignored-server-capabilities
