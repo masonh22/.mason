@@ -38,8 +38,7 @@ alias kds="kubectl describe sts"
 alias k="kubectl"
 alias kc="kubectl config set-context --current --namespace"
 # commands
-alias fd='fd --hidden'
-alias rg='rg --with-filename --no-heading --hidden'
+alias rg='rg --with-filename --no-heading'
 alias rm='rm -v'
 # cd
 alias '..'='cd ..'
