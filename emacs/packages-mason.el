@@ -121,6 +121,7 @@
   :bind
   ("C-<tab>" . tab-line-switch-to-next-tab)
   ("C-S-<tab>" . tab-line-switch-to-prev-tab)
+  ("C-<iso-lefttab>" . tab-line-switch-to-prev-tab)
   ("C-c w" . tab-line-close-current-tab)
   :config
   (defun tab-line-close-current-tab ()

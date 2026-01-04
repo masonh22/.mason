@@ -18,6 +18,7 @@ extras=(
     fzf
     rg
     tailscale
+    uv
 )
 
 languages=(
