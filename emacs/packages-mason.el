@@ -221,18 +221,22 @@ requiring a mouse event."
   (vertico-cycle t)
   )
 
+;; needed by tempel for auto trigger prefix
+(use-package cape)
+
 (use-package tempel
   :custom
-  (tempel-trigger-prefix "<")
   (tempel-path (format "%s/templates/*.eld" setup-mason-dir))
   :config
   (defun tempel-setup-capf ()
-    (setq-local completion-at-point-functions
-                (cons #'tempel-complete
+    (setq-local corfu-auto-trigger "<"
+                completion-at-point-functions
+                (cons (cape-capf-trigger #'tempel-complete ?<)
                       completion-at-point-functions)))
   (defun tempel-setup-exclusive-capf ()
-    (setq-local completion-at-point-functions
-                '(tempel-complete)))
+    (setq-local corfu-auto-trigger "<"
+                completion-at-point-functions
+                (list (cape-capf-trigger #'tempel-complete ?<))))
   :hook
   (org-mode . tempel-setup-exclusive-capf)
   (rust-ts-mode . tempel-setup-capf)
