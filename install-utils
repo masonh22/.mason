@@ -189,6 +189,39 @@ add_to_rc() {
     fi
 }
 
+add_to_fish() {
+    ENV_HOME_NAME="$1"
+    if [ -z "${ENV_HOME_NAME}" ]; then
+        echo 'Usage: add_to_fish <project-name>'
+        return 1
+    fi
+
+    FISH_CONFIG="${HOME}/.config/fish/config.fish"
+    mkdir -p "$(dirname "$FISH_CONFIG")"
+
+    if ! grep "${ENV_HOME_NAME}" "${FISH_CONFIG}" > /dev/null 2>&1; then
+        if $no_prompt; then
+            yes_no=y
+        else
+            user "Add '${ENV_HOME_NAME}' to ${FISH_CONFIG}? [Y/n]"
+            read -e yes_no
+        fi
+        case "$yes_no" in
+            n*|N*)
+                success "Skipped modifying ${FISH_CONFIG}"
+                ;;
+            *)
+                echo '' >> "${FISH_CONFIG}"
+                echo "set -gx ${ENV_HOME_NAME} ${INSTALL_HOME}" >> "${FISH_CONFIG}"
+                echo "source \$${ENV_HOME_NAME}/env.fish" >> "${FISH_CONFIG}"
+                success "Modified ${FISH_CONFIG}"
+                ;;
+        esac
+    else
+        success "${FISH_CONFIG} is already configured"
+    fi
+}
+
 # Symlink the contents of a directory ($1) in the config/ subdirectory of this
 # project to $XDG_CONFIG_HOME/$1
 add_to_config() {

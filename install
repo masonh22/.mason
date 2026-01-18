@@ -56,6 +56,7 @@ setup_emacs_early_init
 
 add_to_rc .bashrc 'MASON_HOME'
 add_to_rc .zshrc 'MASON_HOME'
+add_to_fish 'MASON_HOME'
 
 add_to_config alacritty
 add_to_config fontconfig
