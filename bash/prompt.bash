@@ -15,13 +15,16 @@ current_prompt_style=;
 __BRACKET_INIT='\e[0m' # no formatting
 __BRACKET_DEFAULT=${__BRACKET_INIT}
 
+# Set this to override the terminal title
+MASON_TERM_TITLE="$(hostname -s)"
+
 # wrapper to grab the exit code of the last command
 __prompt_command() {
     __PROMPT_EXIT=$?
 
     # set terminal title
     if [ -z "$INSIDE_EMACS" ] || [ "$INSIDE_EMACS" = 'vterm' ]; then
-        echo -ne "\033]0;${HOSTNAME}\007"
+        printf '\e]2;%s\a' "$MASON_TERM_TITLE"
     fi
 
     # add a "Operating System Command" for the current directory

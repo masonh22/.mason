@@ -12,8 +12,10 @@ color_is_good_for_prompt() {
     return 0 # show it
 }
 
-good_color_for_number() {
-    input_color=$1
+choose_good_color() {
+    text="$1"
+    texthash=$(cksum <<< ${text} | cut -d ' ' -f 1)
+    input_color=$((${texthash} % 256))
     if color_is_good_for_prompt $input_color; then
         # the 38 (48) is for foreground (background), but not sure what the 5 is for
         echo -n "38;5;${input_color}"
@@ -26,8 +28,7 @@ good_color_for_number() {
         if color_is_good_for_prompt $new_color; then
             echo -n "38;5;${new_color}"
         else
-            # go back to the original hash
-            # just use a basic color
+            # go back to the original hash just use a basic color
             echo -n "$((32 + ${input_color} % 5))"
         fi
     fi
@@ -52,8 +53,7 @@ choose_color() {
             echo "38;5;31" # red
             ;;
         *)
-            texthash=$(cksum <<< ${text} | cut -d ' ' -f 1)
-            good_color_for_number $((${texthash} % 256))
+            choose_good_color "$text"
             ;;
     esac
 }
@@ -69,8 +69,7 @@ color_text() {
 _show_color_with_name() {
     color_name=$1
     number=$2
-    printf "%s => \e[%sm%s\e[0m\n" \
-           $number $number $color_name
+    printf "%s => \e[%sm%s\e[0m\n" $number $number $color_name
 }
 
 show_colors() {
@@ -92,24 +91,14 @@ show_colors() {
             done
             echo
             ;;
-        cleaned)
-            for i in $(seq 0 255); do
-                printf "\e[%sm %3d \e[0m" \
-                       $(good_color_for_number $i) $i
-                if [ $(($i % 10)) -eq 9 ]; then echo; fi
-            done
-            echo
-            ;;
         all)
             echo "basic:"
             show_colors basic
             echo "expanded:"
             show_colors expanded
-            echo "cleaned:"
-            show_colors cleaned
             ;;
         *)
-            echo "Usage: show_all_colors [basic|expanded|cleaned|all]"
+            echo "Usage: show_all_colors [basic|expanded|all]"
             ;;
     esac
 }

@@ -50,7 +50,7 @@
 
 ;; fill column text wrapping
 (setq-default fill-column 80)
-(add-hook 'text-mode-hook 'turn-on-auto-fill)
+(add-hook 'org-mode-hook 'turn-on-auto-fill)
 (global-set-key (kbd "C-c q") 'auto-fill-mode)
 
 ;; modeline
