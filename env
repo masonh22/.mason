@@ -1,3 +1,9 @@
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+    *) return;;
+esac
+
 [ -n "$INIT_TRACE" ] && echo "$(date +%s.%N) .mason/env"
 
 # Load common configuration files
