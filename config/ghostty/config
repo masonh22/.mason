@@ -14,3 +14,6 @@ window-width = 80
 
 quit-after-last-window-closed = true
 quit-after-last-window-closed-delay = 5m
+
+# Disable command Q
+keybind = cmd+q=ignore
