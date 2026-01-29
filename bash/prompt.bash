@@ -130,9 +130,9 @@ _prompt_list() {
 
     local verbs='help list preview regen switch'
 
-    if [ $cword -eq 1 ]; then
+    if [ "$cword" -eq 1 ]; then
         COMPREPLY=($(compgen -W "$verbs" -- "$cur"))
-    elif [ $cword -eq 2 ]; then
+    elif [ "$cword" -eq 2 ]; then
         case "$prev" in
             'preview'|'switch')
                 COMPREPLY=($(compgen -W "${!prompts[*]}" -- "$cur"))
@@ -145,11 +145,11 @@ complete -F _prompt_list prompt
 
 # useful things to include in prompts
 gen_prompt_utils() {
-    fancy_hostname="$(color_text @$(hostname -s))"
+    fancy_hostname="$(color_text "@$(hostname -s)")"
     # only show hostname if this is an ssh session
     optional_hostname="$(if [ -n "${IS_SSH}" ]; then echo "${fancy_hostname}"; fi)"
     opam_switch='$(color_text "($(opam switch show))")'
-    fancy_username="$(color_text $(whoami))"
+    fancy_username="$(color_text "$(whoami)")"
     fancy_cursor='\e[?6;0;13;c'
     # change the bracket color depending on whether the last command failed
     bracket_color='if [ "$__PROMPT_EXIT" = "0" ]; then echo -e "${__BRACKET_DEFAULT}"; else echo -e "\e[0m\e[31m"; fi'

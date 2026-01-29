@@ -1,5 +1,5 @@
 is_git() {
-    if [ $(git rev-parse --is-inside-work-tree 2> /dev/null) ]; then
+    if [ "$(git rev-parse --is-inside-work-tree 2> /dev/null)" ]; then
         echo 'true'
         return 0
     else
@@ -24,12 +24,12 @@ git_clean() {
 
 # Print the number of unpushed changes for the current branch
 git_need_push() {
-    git log origin/$(git_branch)..HEAD --oneline --color=never 2> /dev/null | wc -l
+    git log "origin/$(git_branch)..HEAD" --oneline --color=never 2> /dev/null | wc -l
 }
 
 git_prompt() {
     if [ -n "$(is_git)" ]; then
-        branch=$(color_text $(git_branch))
+        branch=$(color_text "$(git_branch)")
         num_unpushed=$(git_need_push)
         if [ "$num_unpushed" != 0 ]; then
             num_unpushed=":\e[33m$num_unpushed\e[0m" # yellow

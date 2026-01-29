@@ -34,12 +34,12 @@ if [ -n "${MASON_ENV_INIT_COMPLETE}" ]; then
 fi
 
 # cargo (rust) configuration
-test -r ${HOME}/.cargo/env && . ${HOME}/.cargo/env
+test -r "${HOME}/.cargo/env" && . "${HOME}/.cargo/env"
 # this tells cargo to install stuff in this directory:
 export CARGO_INSTALL_ROOT=${HOME}/.local
 
 # elan (lean) configuration
-test -r ${HOME}/.elan/env && . ${HOME}/.elan/env
+test -r "${HOME}/.elan/env" && . "${HOME}/.elan/env"
 
 # kubectl configuration, initialized lazily because it's slow
 _load_kubectl_completions() {

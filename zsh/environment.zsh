@@ -4,6 +4,6 @@ if [ -n "${MASON_ZSH_ENV_INIT_COMPLETE}" ]; then
 fi
 
 # opam configuration
-test -r ${HOME}/.opam/opam-init/init.zsh && . ${HOME}/.opam/opam-init/init.zsh > /dev/null 2>&1 || true
+test -r "${HOME}/.opam/opam-init/init.zsh" && . "${HOME}/.opam/opam-init/init.zsh" > /dev/null 2>&1 || true
 
 MASON_ZSH_ENV_INIT_COMPLETE=true

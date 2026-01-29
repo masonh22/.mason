@@ -309,10 +309,10 @@ zstyle ':vcs_info:git*+set-message:*' hooks \
     local -a gitstatus
 
     # Exit early in case the worktree is on a detached HEAD
-    git rev-parse ${hook_com[branch]}@{upstream} >/dev/null 2>&1 || return 0
+    git rev-parse "${hook_com[branch]}@{upstream}" >/dev/null 2>&1 || return 0
 
     local -a ahead_and_behind=(
-        $(git rev-list --left-right --count HEAD...${hook_com[branch]}@{upstream} 2>/dev/null)
+        $(git rev-list --left-right --count "HEAD...${hook_com[branch]}@{upstream}" 2>/dev/null)
     )
 
     ahead=${ahead_and_behind[1]}
@@ -325,7 +325,7 @@ zstyle ':vcs_info:git*+set-message:*' hooks \
 }
 
 +vi-git-color-branch() {
-    hook_com[branch]="$(color_text ${hook_com[branch]})"
+    hook_com[branch]="$(color_text "${hook_com[branch]}")"
 }
 
 precmd_functions+=( vcs_info )

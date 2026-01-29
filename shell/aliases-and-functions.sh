@@ -1,6 +1,10 @@
 # enable color support of ls and also add handy aliases
 if command -v dircolors > /dev/null 2>&1; then
-    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    if [ -r ~/.dircolors ]; then
+        eval "$(dircolors -b ~/.dircolors)"
+    else
+        eval "$(dircolors -b)"
+    fi
     alias ls='ls --color=auto'
 
     alias grep='grep --color=auto -I'
@@ -88,8 +92,8 @@ cdh() {
     fi
 
     if [[ "$PWD" == "$PROJECTS/"* ]]; then
-        local relative_path="${PWD#$PROJECTS/}"
-        if [[ -n "$relative_path" ]]; then
+        local relative_path="${PWD#"$PROJECTS/"}"
+        if [ -n "$relative_path" ]; then
             local first_dir="${relative_path%%/*}"
             cd "$PROJECTS/$first_dir"
         fi
@@ -100,12 +104,12 @@ if [ -x "$(command -v aws)" ]; then
     # Refresh AWS SSO credentials if they're expired
     refresh-sso() {
         if [ -n "$1" ]; then
-            __aws_profile=" --profile '$1'"
+            __aws_profile=(--profile "$1")
         fi
 
-        if ! aws sts get-caller-identity $__aws_profile > /dev/null 2>&1; then
-            echo "Running 'aws sso login$__aws_profile'"
-            aws sso login $__aws_profile
+        if ! aws sts get-caller-identity "${__aws_profile[@]}" > /dev/null 2>&1; then
+            echo "Running 'aws sso login ${__aws_profile[*]}'"
+            aws sso login "${__aws_profile[@]}"
         else
             echo 'Credentials are valid'
         fi

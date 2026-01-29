@@ -4,6 +4,6 @@ if [ -n "${MASON_BASH_ENV_INIT_COMPLETE}" ]; then
 fi
 
 # opam configuration
-test -r ${HOME}/.opam/opam-init/init.sh && . ${HOME}/.opam/opam-init/init.sh > /dev/null 2>&1 || true
+test -r "${HOME}/.opam/opam-init/init.sh" && . "${HOME}/.opam/opam-init/init.sh" > /dev/null 2>&1 || true
 
 MASON_BASH_ENV_INIT_COMPLETE=true

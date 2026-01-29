@@ -11,7 +11,7 @@ alias l='ls -CF'
 save-my-eyes() {
     if [ -f /tmp/eyes_pid.txt ]; then
         pid=$(head -n 1 /tmp/eyes_pid.txt)
-        kill $pid
+        kill "$pid"
         rm /tmp/eyes_pid.txt > /dev/null
         return 0
     fi
