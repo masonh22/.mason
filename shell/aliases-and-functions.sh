@@ -28,6 +28,7 @@ alias ekill='eeval "(kill-emacs)"'
 alias gst='git status'
 alias gc='git commit'
 alias gd='git diff'
+alias ciaclean='git branch --merged | grep -vE "^\s*(\*|master|main|develop)" | xargs -n 1 git branch -d'
 # kubectl
 alias kcg="kubectl config get-contexts"
 alias kcu="kubectl config use-context"
