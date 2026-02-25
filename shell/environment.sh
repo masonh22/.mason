@@ -71,6 +71,11 @@ if [ -d "$HOME/.local/bin" ]; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
+# set PATH so it includes opencode
+if [ -d "$HOME/.opencode/bin" ]; then
+    PATH="$HOME/.opencode/bin:$PATH"
+fi
+
 # GNU which, if available. This check is good enough for now...
 if which -v > /dev/null 2>&1 \
         && ! alias which > /dev/null 2>&1 \
