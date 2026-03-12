@@ -21,6 +21,7 @@ bindings = [
   { key = "PageDown", action = "ScrollPageDown" },
   { key = "PageUp", mods = "Shift", action = "ScrollToTop" },
   { key = "PageDown", mods = "Shift", action = "ScrollToBottom" },
+  { key = "Return", mods = "Shift", chars = "\n" },
 ]
 
 # Gnome Terminal default colors
