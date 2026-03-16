@@ -466,10 +466,11 @@ requiring a mouse event."
   (whitespace-style '(face trailing tabs tab-mark))
   :hook (prog-mode))
 
-(use-package expand-region
+(use-package expreg
   :defer 2
   :bind
-  ("C-=" . er/expand-region))
+  ("C-=" . expreg-expand)
+  ("C--" . expreg-contract))
 
 (use-package magit
   :defer t
