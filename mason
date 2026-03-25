@@ -1,38 +1,21 @@
 #!/usr/bin/env bash
 # mason - health check and garbage collection for .mason dotfiles
 
-set -euo pipefail
+MASON_HOME=$(dirname $0) # may be relative
+MASON_HOME=$(readlink -f $MASON_HOME) # now it is absolute
 
-MASON_HOME="$(cd "$(dirname "$0")" && pwd)"
-CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+cd $MASON_HOME
 
-# --- output helpers (match install-utils style) ---
-
-info()    { printf "\r  [ \033[00;34m..\033[0m ] %s\n" "$*"; }
-ok()      { printf "\r  [ \033[00;32mOK\033[0m ] %s\n" "$*"; }
-warn()    { printf "\r  [ \033[0;33m!!\033[0m ] %s\n" "$*"; }
-miss()    { printf "\r  [\033[0;31mMISS\033[0m] %s\n" "$*"; }
-dead()    { printf "\r  [\033[0;31mDEAD\033[0m] %s\n" "$*"; }
-
-# --- helpers ---
-
-get_emacs_home() {
-    if [ -d "$HOME/.config/emacs" ]; then
-        echo "$HOME/.config/emacs"
-    elif [ -d "$HOME/.emacs.d" ]; then
-        echo "$HOME/.emacs.d"
-    fi
-}
+. install-utils "$MASON_HOME"
 
 # Check a single expected symlink. Updates counts_ok/counts_warn/counts_miss.
 # Usage: check_symlink <src> <dst>
 check_symlink() {
     local src="$1" dst="$2"
     if [ -L "$dst" ]; then
-        local actual
-        actual="$(readlink "$dst")"
+        local actual="$(readlink "$dst")"
         if [ "$actual" = "$src" ]; then
-            $verbose && ok "$dst"
+            $verbose && success "$dst"
             counts_ok=$((counts_ok + 1))
         else
             warn "$dst -> $actual (expected -> $src)"
@@ -60,21 +43,23 @@ all_mason_symlinks() {
     find_mason_symlinks "$HOME" -maxdepth 1
     find_mason_symlinks "$CONFIG_HOME"
 
-    local emacs_home
-    emacs_home="$(get_emacs_home)"
+    local emacs_home="$(get_emacs_home)"
     if [ -n "$emacs_home" ] && [[ "$emacs_home" != "$CONFIG_HOME"* ]]; then
         find_mason_symlinks "$emacs_home" -maxdepth 1
     fi
 }
 
-# --- health command ---
-
 cmd_health() {
     local verbose=false
     while [ $# -gt 0 ]; do
         case "$1" in
-            -v|--verbose) verbose=true ;;
-            *) echo "Unknown option: $1"; exit 1 ;;
+            -v|--verbose)
+                verbose=true
+                ;;
+            *)
+                echo "Unknown option: $1"
+                exit 1
+                ;;
         esac
         shift
     done
@@ -86,19 +71,14 @@ cmd_health() {
     # *.symlink.* files
     while IFS= read -r src; do
         [ -z "$src" ] && continue
-        local root_dir="${src#*.symlink.}/"
-        if [ "$root_dir" = 'home/' ]; then
-            root_dir=
-        fi
-        local dst="$HOME/${root_dir}$(basename "${src%.symlink.*}")"
+        local dst="$(installable_dst "$src" symlink)"
         check_symlink "$src" "$dst"
-    done < <(find "$MASON_HOME" \( -name .git -o -name emacs \) -prune -o -name '*.symlink.*' -print)
+    done < <(find_installable symlink)
 
     # config/* directories
     for config_src in "$MASON_HOME"/config/*/; do
         [ -d "$config_src" ] || continue
-        local name
-        name="$(basename "$config_src")"
+        local name="$(basename "$config_src")"
         local config_dst="$CONFIG_HOME/$name"
 
         if [ ! -d "$config_dst" ]; then
@@ -115,13 +95,11 @@ cmd_health() {
     done
 
     # emacs early-init.el
-    local emacs_home
-    emacs_home="$(get_emacs_home)"
+    local emacs_home="$(get_emacs_home)"
     if [ -n "$emacs_home" ]; then
         check_symlink "$MASON_HOME/emacs/early-init.el" "$emacs_home/early-init.el"
     fi
 
-    # Dead symlinks
     echo ""
     info "Checking for dead symlinks..."
 
@@ -133,7 +111,6 @@ cmd_health() {
         fi
     done < <(all_mason_symlinks)
 
-    # Summary
     echo ""
     local summary=""
     [ "$counts_ok" -gt 0 ] && summary="${summary}${counts_ok} ok, "
@@ -142,7 +119,7 @@ cmd_health() {
     [ "$counts_dead" -gt 0 ] && summary="${summary}${counts_dead} dead, "
 
     if [ "$counts_warn" -eq 0 ] && [ "$counts_miss" -eq 0 ] && [ "$counts_dead" -eq 0 ]; then
-        ok "All healthy (${counts_ok} symlinks verified)"
+        success "All healthy (${counts_ok} symlinks verified)"
     else
         info "${summary%, }"
     fi
@@ -152,14 +129,17 @@ cmd_health() {
     return 0
 }
 
-# --- gc command ---
-
 cmd_gc() {
     local force=false
     while [ $# -gt 0 ]; do
         case "$1" in
-            -f|--force) force=true ;;
-            *) echo "Unknown option: $1"; exit 1 ;;
+            -f|--force)
+                force=true
+                ;;
+            *)
+                echo "Unknown option: $1"
+                exit 1
+                ;;
         esac
         shift
     done
@@ -171,7 +151,7 @@ cmd_gc() {
         if [ ! -e "$link" ]; then
             if $force; then
                 rm "$link"
-                ok "Removed $link"
+                success "Removed $link"
             else
                 dead "$link -> $(readlink "$link")"
             fi
@@ -180,27 +160,17 @@ cmd_gc() {
     done < <(all_mason_symlinks)
 
     if [ "$count" -eq 0 ]; then
-        ok "No dead symlinks found"
+        success "No dead symlinks found"
         return 0
     fi
 
     if $force; then
-        ok "Removed $count dead symlink(s)"
-
-        # Clean up empty config directories that correspond to mason config dirs
-        for config_src in "$MASON_HOME"/config/*/; do
-            [ -d "$config_src" ] || continue
-            local name
-            name="$(basename "$config_src")"
-            rmdir "$CONFIG_HOME/$name" 2>/dev/null && ok "Removed empty directory $CONFIG_HOME/$name" || true
-        done
+        success "Removed $count dead symlink(s)"
     else
         echo ""
         info "$count dead symlink(s) found. Run 'mason gc -f' to remove."
     fi
 }
-
-# --- main ---
 
 usage() {
     cat <<'EOF'
