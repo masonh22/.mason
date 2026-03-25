@@ -10,19 +10,63 @@ if [ -z "$INSTALL_HOME" ]; then
 fi
 
 info() {
-    printf "\r  [ \033[00;34m..\033[0m ] $@\n"
+    printf "\r  [ \033[00;34m..\033[0m ] %s\n" "$*"
 }
 
 user() {
-    printf "\r  [ \033[0;33m??\033[0m ] $@\n> "
+    printf "\r  [ \033[0;33m??\033[0m ] %s\n> " "$*"
 }
 
 success() {
-    printf "\r\033[2K  [ \033[00;32mOK\033[0m ] $@\n"
+    printf "\r\033[2K  [ \033[00;32mOK\033[0m ] %s\n" "$*"
 }
 
 fail() {
-    printf "\r\033[2K  [\033[0;31mFAIL\033[0m] $@\n" 1>&2
+    printf "\r\033[2K  [\033[0;31mFAIL\033[0m] %s\n" "$*" 1>&2
+}
+
+warn() {
+    printf "\r  [ \033[0;33m!!\033[0m ] %s\n" "$*"
+}
+
+miss() {
+    printf "\r  [\033[0;31mMISS\033[0m] %s\n" "$*"
+}
+
+dead() {
+    printf "\r  [\033[0;31mDEAD\033[0m] %s\n" "$*"
+}
+
+CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+# Detect emacs config directory. With --create, makes ~/.config/emacs if neither exists.
+get_emacs_home() {
+    if [ -d "$HOME/.config/emacs" ]; then
+        echo "$HOME/.config/emacs"
+    elif [ -d "$HOME/.emacs.d" ]; then
+        echo "$HOME/.emacs.d"
+    elif [ "${1:-}" = "--create" ]; then
+        mkdir -p "$HOME/.config/emacs"
+        echo "$HOME/.config/emacs"
+    fi
+}
+
+# Compute destination path for a *.symlink.* or *.copy.* source file.
+# Usage: installable_dst <src> <"symlink"|"copy">
+installable_dst() {
+    local src="$1"
+    local kind="$2"
+    local root_dir="${src#*.${kind}.}/"
+    if [ "$root_dir" = 'home/' ]; then
+        root_dir=
+    fi
+    echo "$HOME/${root_dir}$(basename "${src%.${kind}.*}")"
+}
+
+# Find installable files (*.symlink.* or *.copy.*) in INSTALL_HOME.
+# Usage: find_installable <"symlink"|"copy">
+find_installable() {
+    find "$INSTALL_HOME" \( -name .git -o -name emacs \) -prune -o -name "*.${1}.*" -print
 }
 
 do_op() {
@@ -123,16 +167,9 @@ install_symlinks() {
 
     default_action=$init_default_action
 
-    for src in $(find $INSTALL_HOME \( -name .git -o -name emacs \) -prune -o -name '*.symlink.*' -print); do
-        # files are named <file>.symlink.<rootdir> and get installed in
-        # $HOME/<rootdir>/<file> unless <rootdir> is home, then $HOME/<file>
-        root_dir="${src#*.symlink.}/"
-        if [ "$root_dir" = 'home/' ]; then
-            root_dir=
-        else
-            do_op mkdir -p "$HOME/$root_dir"
-        fi
-        dst="$HOME/${root_dir}$(basename ${src%.symlink.*})"
+    for src in $(find_installable symlink); do
+        dst="$(installable_dst "$src" symlink)"
+        do_op mkdir -p "$(dirname "$dst")"
 
         install_action 'ln -s' "$src" "$dst"
     done
@@ -143,16 +180,9 @@ install_copies() {
 
     default_action=$init_default_action
 
-    for src in $(find $INSTALL_HOME \( -name .git -o -name emacs \) -prune -o -name '*.copy.*' -print); do
-        # files are named <file>.copy.<rootdir> and get copied in
-        # $HOME/<rootdir>/<file> unless <rootdir> is home, then $HOME/<file>
-        root_dir="${src#*.copy.}/"
-        if [ "$root_dir" = 'home/' ]; then
-            root_dir=
-        else
-            do_op mkdir -p "$HOME/$root_dir"
-        fi
-        dst="$HOME/${root_dir}$(basename ${src%.copy.*})"
+    for src in $(find_installable copy); do
+        dst="$(installable_dst "$src" copy)"
+        do_op mkdir -p "$(dirname "$dst")"
 
         install_action cp "$src" "$dst"
     done
@@ -204,7 +234,7 @@ add_to_config() {
         return 1
     fi
 
-    config_dst="${XDG_CONFIG_HOME:-${HOME}/.config}/${CONFIG_NAME}"
+    config_dst="${CONFIG_HOME}/${CONFIG_NAME}"
 
     install_action 'cp -rs' "${config_src}/" "$config_dst"
 }
@@ -218,16 +248,6 @@ add_to_bashrc() {
     add_to_rc .bashrc "$1"
 }
 
-get_emacs_home() {
-    if [ -d "${HOME}/.config/emacs" ]; then
-        echo "${HOME}/.config/emacs"
-    elif [ -d "${HOME}/.emacs.d" ]; then
-        echo "${HOME}/.emacs.d"
-    else
-        mkdir -p "${HOME}/.config/emacs"
-        echo "${HOME}/.config/emacs"
-    fi
-}
 
 add_to_emacs() {
     EMACS_PACKAGE_NAME=$1
@@ -236,7 +256,7 @@ add_to_emacs() {
         return 1
     fi
 
-    EMACS_HOME="$(get_emacs_home)"
+    EMACS_HOME="$(get_emacs_home --create)"
 
     if ! grep "${EMACS_PACKAGE_NAME}" ${EMACS_HOME}/init.el > /dev/null 2>&1; then
         if $no_prompt; then

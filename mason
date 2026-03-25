@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+# mason - health check and garbage collection for .mason dotfiles
+
+MASON_HOME=$(dirname $0) # may be relative
+MASON_HOME=$(readlink -f $MASON_HOME) # now it is absolute
+
+cd $MASON_HOME
+
+. install-utils "$MASON_HOME"
+
+# Check a single expected symlink. Updates counts_ok/counts_warn/counts_miss.
+# Usage: check_symlink <src> <dst>
+check_symlink() {
+    local src="$1" dst="$2"
+    if [ -L "$dst" ]; then
+        local actual="$(readlink "$dst")"
+        if [ "$actual" = "$src" ]; then
+            $verbose && success "$dst"
+            counts_ok=$((counts_ok + 1))
+        else
+            warn "$dst -> $actual (expected -> $src)"
+            counts_warn=$((counts_warn + 1))
+        fi
+    elif [ -e "$dst" ]; then
+        warn "$dst exists but is not a symlink (may have been overwritten)"
+        counts_warn=$((counts_warn + 1))
+    else
+        miss "$dst"
+        counts_miss=$((counts_miss + 1))
+    fi
+}
+
+# Find all symlinks pointing into MASON_HOME under the given path.
+# Usage: find_mason_symlinks <path> [find-args...]
+find_mason_symlinks() {
+    local search_path="$1"
+    shift
+    [ -d "$search_path" ] || return 0
+    find "$search_path" "$@" -lname "$MASON_HOME/*" 2>/dev/null
+}
+
+all_mason_symlinks() {
+    find_mason_symlinks "$HOME" -maxdepth 1
+    find_mason_symlinks "$CONFIG_HOME"
+
+    local emacs_home="$(get_emacs_home)"
+    if [ -n "$emacs_home" ] && [[ "$emacs_home" != "$CONFIG_HOME"* ]]; then
+        find_mason_symlinks "$emacs_home" -maxdepth 1
+    fi
+}
+
+cmd_health() {
+    local verbose=false
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -v|--verbose)
+                verbose=true
+                ;;
+            *)
+                echo "Unknown option: $1"
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
+    local counts_ok=0 counts_warn=0 counts_miss=0 counts_dead=0
+
+    info "Checking expected symlinks from repo..."
+
+    # *.symlink.* files
+    while IFS= read -r src; do
+        [ -z "$src" ] && continue
+        local dst="$(installable_dst "$src" symlink)"
+        check_symlink "$src" "$dst"
+    done < <(find_installable symlink)
+
+    # config/* directories
+    for config_src in "$MASON_HOME"/config/*/; do
+        [ -d "$config_src" ] || continue
+        local name="$(basename "$config_src")"
+        local config_dst="$CONFIG_HOME/$name"
+
+        if [ ! -d "$config_dst" ]; then
+            miss "$config_dst/ (config directory not installed)"
+            counts_miss=$((counts_miss + 1))
+            continue
+        fi
+
+        while IFS= read -r src_file; do
+            [ -z "$src_file" ] && continue
+            local rel="${src_file#"$config_src"}"
+            check_symlink "$src_file" "$config_dst/$rel"
+        done < <(find "$config_src" -not -type d -print)
+    done
+
+    # emacs early-init.el
+    local emacs_home="$(get_emacs_home)"
+    if [ -n "$emacs_home" ]; then
+        check_symlink "$MASON_HOME/emacs/early-init.el" "$emacs_home/early-init.el"
+    fi
+
+    echo ""
+    info "Checking for dead symlinks..."
+
+    while IFS= read -r link; do
+        [ -z "$link" ] && continue
+        if [ ! -e "$link" ]; then
+            dead "$link -> $(readlink "$link")"
+            counts_dead=$((counts_dead + 1))
+        fi
+    done < <(all_mason_symlinks)
+
+    echo ""
+    local summary=""
+    [ "$counts_ok" -gt 0 ] && summary="${summary}${counts_ok} ok, "
+    [ "$counts_warn" -gt 0 ] && summary="${summary}${counts_warn} warning(s), "
+    [ "$counts_miss" -gt 0 ] && summary="${summary}${counts_miss} missing, "
+    [ "$counts_dead" -gt 0 ] && summary="${summary}${counts_dead} dead, "
+
+    if [ "$counts_warn" -eq 0 ] && [ "$counts_miss" -eq 0 ] && [ "$counts_dead" -eq 0 ]; then
+        success "All healthy (${counts_ok} symlinks verified)"
+    else
+        info "${summary%, }"
+    fi
+
+    [ "$counts_dead" -gt 0 ] && info "Run 'mason gc' to clean up dead symlinks"
+
+    return 0
+}
+
+cmd_gc() {
+    local force=false
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -f|--force)
+                force=true
+                ;;
+            *)
+                echo "Unknown option: $1"
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
+    local count=0
+
+    while IFS= read -r link; do
+        [ -z "$link" ] && continue
+        if [ ! -e "$link" ]; then
+            if $force; then
+                rm "$link"
+                success "Removed $link"
+            else
+                dead "$link -> $(readlink "$link")"
+            fi
+            count=$((count + 1))
+        fi
+    done < <(all_mason_symlinks)
+
+    if [ "$count" -eq 0 ]; then
+        success "No dead symlinks found"
+        return 0
+    fi
+
+    if $force; then
+        success "Removed $count dead symlink(s)"
+    else
+        echo ""
+        info "$count dead symlink(s) found. Run 'mason gc -f' to remove."
+    fi
+}
+
+usage() {
+    cat <<'EOF'
+Usage: mason <command> [options]
+
+Commands:
+  health    Check installation health
+  gc        Find and remove dead symlinks
+
+Options:
+  health -v     Show all symlinks, not just problems
+  gc -f         Actually remove dead symlinks (default is dry-run)
+EOF
+}
+
+case "${1:-}" in
+    health)
+        shift
+        cmd_health "$@"
+        ;;
+    gc)
+        shift
+        cmd_gc "$@"
+        ;;
+    -h|--help|"")
+        usage
+        ;;
+    *)
+        echo "Unknown command: $1"
+        usage
+        exit 1
+        ;;
+esac
