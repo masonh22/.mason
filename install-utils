@@ -120,7 +120,8 @@ install_action() {
         if [ "$(readlink $dst)" = "$src" ]; then
             action='s'
         elif [ -z "$action" ]; then
-            user "File already exists: $dst ($(basename $src)), what to do? (caps applies the action to all remaining files)\n[s]kip, [o]verwrite, [b]ackup"
+            user "File already exists: $dst ($(basename $src)), what to do? (caps applies the action to all remaining files)
+[s]kip, [o]verwrite, [b]ackup"
             read -n 1 action
         fi
     fi
