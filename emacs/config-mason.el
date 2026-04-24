@@ -81,6 +81,11 @@
 ;; Restore cursor to last place in a file when reopening
 (save-place-mode 1)
 
+;; Recenter after restoring cursor position
+(advice-add 'save-place-find-file-hook :after
+            (lambda (&rest _)
+              (when buffer-file-name (ignore-errors (recenter)))))
+
 ;; Scrolling
 (setq mouse-wheel-scroll-amount '(5 ((shift) . 1))
       mouse-wheel-progressive-speed nil
@@ -145,6 +150,29 @@
       isearch-lazy-count t
       lazy-count-prefix-format "(%s/%s) "
       lazy-count-suffix-format nil)
+
+;; disable bidirectional text scanning (for languages that read right-to-left)
+(setq-default bidi-display-reordering 'left-to-right
+              bidi-paragraph-direction 'left-to-right)
+(setq bidi-inhibit-bpa t)
+
+;; skip fontification when there is pending input
+(setq redisplay-skip-fontification-on-input t)
+
+;; increase process output buffer size (may help LSP performance)
+(setq read-process-output-max (* 4 1024 1024))
+
+;; kill ring
+(setq save-interprogram-paste-before-kill t
+      kill-do-not-save-duplicates t)
+
+;; auto-select the help window
+(setq help-window-select t)
+
+;; repeat mode
+(repeat-mode 1)
+
+(setq set-mark-command-repeat-pop t)
 
 ;; *org* buffer
 (defcustom initial-org-message (purecopy "\
@@ -270,3 +298,17 @@ fill-paragraph."
 ;;     (reusable-frames . t)))
 
 ;; (setopt even-window-sizes nil) ; avoid resizing
+
+(setq window-combination-resize t)
+
+(winner-mode +1)
+
+(defun toggle-delete-other-windows()
+  "Delete other windows in frame if any, or restore previous window config."
+  (interactive)
+  (if (and winner-mode
+           (equal (selected-window) (next-window)))
+      (winner-undo)
+    (delete-other-windows)))
+
+(global-set-key (kbd "C-x 1") #'toggle-delete-other-windows)
