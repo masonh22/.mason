@@ -167,7 +167,8 @@
       kill-do-not-save-duplicates t)
 
 ;; auto-select the help window
-(setq help-window-select t)
+(setq help-window-select t
+      help-window-keep-selected t)
 
 ;; repeat mode
 (repeat-mode 1)

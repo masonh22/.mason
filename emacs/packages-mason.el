@@ -2,9 +2,16 @@
 (provide 'packages-mason)
 
 (use-package package
-  :config
-  (add-to-list 'package-archives '("melpa-stable" . "https://stable.melpa.org/packages/") t)
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t))
+  :ensure nil
+  :custom
+  (package-archives
+   '(("gnu-elpa" . "https://elpa.gnu.org/packages/")
+     ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+     ("melpa" . "https://melpa.org/packages/")))
+  (package-archive-priorities
+   '(("gnu-elpa" . 3)
+     ("nongnu" . 2)
+     ("melpa" . 1))))
 
 (package-initialize)
 
@@ -465,6 +472,29 @@ requiring a mouse event."
   :custom
   (whitespace-style '(face trailing tabs tab-mark))
   :hook (prog-mode))
+
+(use-package ediff
+  :ensure nil
+  :custom
+  (ediff-split-window-function 'split-window-horizontally)
+  (ediff-window-setup-function 'ediff-setup-windows-plain))
+
+(use-package delsel
+  :ensure nil
+  :hook
+  (after-init . (lambda () (delete-selection-mode 1))))
+
+(use-package dired
+  :ensure nil
+  :custom
+  (dired-auto-revert-buffer #'dired-directory-changed-p)
+  (dired-clean-up-buffers-too t)
+  (dired-clean-confirm-killing-deleted-buffers t)
+  (dired-recursive-copies 'always)
+  (dired-recursive-deletes 'always)
+  (dired-create-destination-dirs 'ask)
+  (dired-create-destination-dirs-on-trailing-dirsep t)
+  (wdired-create-parent-directories t))
 
 (use-package expreg
   :defer 2
