@@ -7,11 +7,11 @@
   "Avoid flash of light when starting Emacs"
   (progn
     (setq mode-line-format nil)
-    (set-face-attribute 'default nil :background "#000000" :foreground "#ffffff")
-    (set-face-attribute 'mode-line nil :background "#000000" :foreground "#ffffff" :box 'unspecified)
+    (set-face-attribute 'default nil :background "#21242b" :foreground "#5b6268")
+    (set-face-attribute 'mode-line nil :background "#21242b" :foreground "#5b6268" :box 'unspecified)
     ))
 
-;; (mason-avoid-initial-flash-of-light)
+(mason-avoid-initial-flash-of-light)
 
 ;; For MacOS: use a transparent titlebar
 (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t))
