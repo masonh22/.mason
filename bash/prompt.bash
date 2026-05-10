@@ -90,6 +90,12 @@ prompt() {
             shift
             # fall through
             ;;
+        'completions')
+            echo 'help,list,preview,regen,switch'
+            echo 'preview:${!prompts[*]}'
+            echo 'switch:${!prompts[*]}'
+            return 0
+            ;;
         '')
             echo "$usage"
             return 1
@@ -124,24 +130,7 @@ prompt() {
         PS1=${PS1}'\[$(vterm_prompt_end)\]'
     fi
 }
-_prompt_list() {
-    local cur prev words cword
-    _init_completion || return
-
-    local verbs='help list preview regen switch'
-
-    if [ "$cword" -eq 1 ]; then
-        COMPREPLY=($(compgen -W "$verbs" -- "$cur"))
-    elif [ "$cword" -eq 2 ]; then
-        case "$prev" in
-            'preview'|'switch')
-                COMPREPLY=($(compgen -W "${!prompts[*]}" -- "$cur"))
-                ;;
-        esac
-    fi
-    return 0
-}
-complete -F _prompt_list prompt
+source <(prompt completions | "${MASON_HOME}/scripts/gen-completions.bash" bash prompt -)
 
 # useful things to include in prompts
 gen_prompt_utils() {

@@ -125,6 +125,12 @@ prompt() {
             shift
             # Fall through to main logic
             ;;
+        'completions')
+            echo 'help,list,preview,regen,switch'
+            echo 'preview:${(@k)prompts}'
+            echo 'switch:${(@k)prompts}'
+            return 0
+            ;;
         '') # No arguments
             print "$usage"
             return 1
@@ -172,34 +178,7 @@ prompt() {
     fi
     return 0
 }
-_prompt_completion() {
-    # `compstate` associative array holds completion context (e.g. current word index)
-    # `words` array is 1-indexed, `CURRENT` is 1-based index of word to complete
-    local -a actions_with_descriptions
-    actions_with_descriptions=(
-        'help:Show usage information'
-        'list:List available prompt styles'
-        'ls:Alias for list'
-        'preview:Preview a prompt style'
-        'regen:Regenerate the current prompt'
-        'switch:Switch to a new prompt style'
-    )
-
-    # If completing the first argument to `prompt` (the action)
-    if (( CURRENT == 2 )); then
-        # _describe provides completion with descriptions
-        _describe -t actions 'action' actions_with_descriptions
-    # If completing the second argument (the prompt name)
-    elif (( CURRENT == 3 )); then
-        case "${words[2]}" in  # words[2] is the action (e.g., 'prompt switch <TAB>')
-            'preview'|'switch')
-                _values 'prompt style' ${(@k)prompts}
-                ;;
-        esac
-    fi
-    return 0 # Indicate success to completion system
-}
-compdef _prompt_completion prompt
+source <(prompt completions | "${MASON_HOME}/scripts/gen-completions.bash" zsh prompt -)
 
 # Utility function to generate common prompt components
 gen_prompt_utils() {
