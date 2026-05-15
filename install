@@ -61,7 +61,6 @@ add_to_config alacritty
 add_to_config fontconfig
 add_to_config ghostty
 add_to_config git
-add_to_config htop
 add_to_config hypr
 add_to_config i3
 add_to_config niri
