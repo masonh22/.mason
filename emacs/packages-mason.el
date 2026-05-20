@@ -72,6 +72,8 @@
     (add-to-list 'eglot-server-programs
                  '((rust-ts-mode) . ("rust-analyzer" :initializationOptions
                                      ( :check (:command "check")
+                                       :imports (:granularity ( :enforce t
+                                                                :group "module"))
                                        :procMacro (:enable t)
                                        :cargo ( :buildScripts (:enable t)
                                                 :targetDir t
