@@ -10,7 +10,7 @@
 
 [hook "todo-comments"]
   event = pre-commit
-  command = "git diff --cached | grep -i -e '^\\+.*TODO MASON.*' && { echo 'Remove \"TODO MASON\" comments before committing' 1>&2; exit 1; } || exit 0"
+  command = "git diff --cached | grep -i -e '^\\+.*TODO.MASON.*' && { echo 'Remove \"TODO MASON\" comments before committing' 1>&2; exit 1; } || exit 0"
 
 # from https://blog.gitbutler.com/how-git-core-devs-configure-git/
 [column]
