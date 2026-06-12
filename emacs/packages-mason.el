@@ -263,6 +263,10 @@ requiring a mouse event."
   (corfu-preview-current t)     ;; Enable current candidate preview
   (corfu-preselect 'first)      ;; Preselect the first candidate
   (corfu-on-exact-match 'quit)  ;; Configure handling of exact matches
+  :custom-face
+  ;; Higher contrast between the popup background and the selected item.
+  (corfu-default ((t (:background "#21242b"))))
+  (corfu-current ((t (:background "#3f444a"))))
   :hook
   ((c++-ts-mode)
    (rust-ts-mode)
