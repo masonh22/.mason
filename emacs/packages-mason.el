@@ -27,6 +27,9 @@
   (doom-themes-enable-bold t)   ; if nil, bold is universally disabled
   (doom-themes-enable-italic t) ; if nil, italics is universally disabled
   :config
+  ;; https://github.com/doomemacs/themes/issues/875#issuecomment-3557150380
+  (setcdr (assoc 'gnus-group-news-low-empty doom-themes-base-faces)
+          '(:inherit 'gnus-group-mail-1-empty :weight 'normal))
   (load-theme 'doom-one t)
   ;; Improves org-mode's native fontification
   (doom-themes-org-config)
