@@ -80,9 +80,14 @@
                                                 :features "all")))))
     :custom
     (eglot-ignored-server-capabilities
-     '(:hoverProvider
-       :inlayHintProvider))
+     '(:hoverProvider :inlayHintProvider :semanticTokensProvider))
     (eglot-autoshutdown t)
+    (eglot-code-action-indications '(mode-line))
+    :bind (:map eglot-mode-map
+                ("C-c c a" . eglot-code-actions)
+                ("C-c c r" . eglot-rename)
+                ("C-c c f" . eglot-format)
+                ("C-c c o" . eglot-code-action-organize-imports))
     :hook
     ((c-ts-mode . eglot-ensure)
      (c++-ts-mode . eglot-ensure)
