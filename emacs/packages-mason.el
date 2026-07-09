@@ -456,9 +456,13 @@ requiring a mouse event."
    '(projectile-root-local
      projectile-root-marked
      projectile-root-bottom-up))
+  (projectile-project-search-path '("~/Projects" "~/git"))
   (projectile-indexing-method 'alien)
+  (projectile-switch-project-action #'projectile-dired)
   :bind-keymap
   ("C-x p" . projectile-command-map))
+
+(use-package persp-projectile)
 
 (use-package haskell-mode
   :defer t)
