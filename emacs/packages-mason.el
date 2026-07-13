@@ -449,7 +449,6 @@ requiring a mouse event."
   :defer t)
 
 (use-package projectile
-  :defer 2
   :hook after-init
   :custom
   (projectile-project-root-functions
@@ -462,7 +461,10 @@ requiring a mouse event."
   :bind-keymap
   ("C-x p" . projectile-command-map))
 
-(use-package persp-projectile)
+(use-package persp-projectile
+  :config
+  (ad-disable-advice 'persp-init-frame 'after 'projectile-persp-init-frame)
+  (ad-activate 'persp-init-frame))
 
 (use-package haskell-mode
   :defer t)

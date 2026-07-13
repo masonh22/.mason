@@ -100,8 +100,8 @@ The current buffer is propertized with 'mode-line-buffer-id' face.")
 
 (defvar-local mason-projectile
     '(:eval
-      (let ((project-name (projectile-project-name))
-            (project-type (projectile-project-type)))
+      (let ((project-name (if (fboundp 'projectile-project-name) projectile-project-name))
+            (project-type (if (fboundp 'projectile-project-type) projectile-project-type)))
         (when (or project-type
                   (and project-name
                        (not (string= project-name "-"))))

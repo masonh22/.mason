@@ -62,8 +62,8 @@
 ;; Frame title: projectile project or file name
 (setq frame-title-format
       '(:eval
-        (let ((project-name (projectile-project-name))
-              (project-type (projectile-project-type)))
+        (let ((project-name (if (fboundp 'projectile-project-name) projectile-project-name))
+              (project-type (if (fboundp 'projectile-project-type) projectile-project-type)))
           (if (or project-type
                   (and project-name
                        (not (string= project-name "-"))))
