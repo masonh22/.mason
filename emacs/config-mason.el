@@ -184,10 +184,15 @@
   :type 'string
   :group 'startup)
 
+(defun persp-org-buffer (&optional name)
+  (let* ((current-name (persp-current-name))
+         (name (or name current-name))
+         (initial-persp (equal name persp-initial-frame-name)))
+    (concat "*org*" (unless initial-persp (format " (%s)" name)))))
+
 (defun create-org-buffer (&optional name)
   "Create an return the '*org*' buffer."
-  (let ((org-buffer (get-buffer-create
-                     (concat "*org*" (when name (format " (%s)" name))))))
+  (let ((org-buffer (get-buffer-create (persp-org-buffer name))))
     (with-current-buffer org-buffer
       (org-mode)
       (insert initial-org-message)
@@ -196,8 +201,8 @@
     org-buffer))
 
 (defun init-org-buffer ()
-  "Create the '*org' buffer and switch to it if the current buffer is
-'*scratch'.
+  "Create the '*org*' buffer and switch to it if the current buffer is
+'*scratch*'.
 
 This is intended to be called from 'after-init-hook'."
   (let ((org-buffer (create-org-buffer)))
@@ -206,14 +211,28 @@ This is intended to be called from 'after-init-hook'."
 
 (add-hook 'after-init-hook 'init-org-buffer)
 
+(defun rename-org-buffer (name)
+  (let* ((old-org-name (persp-org-buffer))
+         (new-org-name (persp-org-buffer name))
+         (org-buffer (get-buffer old-org-name)))
+    (when org-buffer
+      (if (get-buffer new-org-name)
+          (persp-add-buffer new-org-name)
+        (with-current-buffer org-buffer
+          (rename-buffer new-org-name))))))
+
+(advice-add 'persp-rename :before 'rename-org-buffer)
+
 ;; Also create the org buffer when using perspective
 (with-eval-after-load 'perspective
   (defun persp-init-org-buffer ()
     "Create and switch to the '*org*' buffer, unless this is the initial
 perspective."
-    (let ((name (persp-name (persp-curr))))
-      (unless (string= name persp-initial-frame-name)
-        (persp-setup-for name
+    (let* ((name (persp-name (persp-curr)))
+           (org-name (persp-org-buffer name)))
+      (if (get-buffer org-name)
+          (persp-add-buffer org-name)
+        (unless (string= name persp-initial-frame-name)
           (switch-to-buffer (create-org-buffer name))))))
   (add-hook 'persp-created-hook 'persp-init-org-buffer))
 
