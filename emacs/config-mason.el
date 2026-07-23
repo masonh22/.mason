@@ -99,6 +99,9 @@
 
 ;; keybindings
 (global-set-key (kbd "C-c r") 'replace-string)
+(global-set-key (kbd "M-u") 'upcase-dwim)
+(global-set-key (kbd "M-l") 'downcase-dwim)
+(global-set-key (kbd "M-c") 'capitalize-dwim)
 
 ;; confirm quit
 (setq confirm-kill-emacs 'y-or-n-p)
