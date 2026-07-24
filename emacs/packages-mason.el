@@ -462,9 +462,9 @@ requiring a mouse event."
   ("C-x p" . projectile-command-map))
 
 (use-package persp-projectile
-  :config
-  (ad-disable-advice 'persp-init-frame 'after 'projectile-persp-init-frame)
-  (ad-activate 'persp-init-frame))
+  :ensure t
+  :vc (:url "https://github.com/masonh22/persp-projectile.git"
+            :rev :newest))
 
 (use-package haskell-mode
   :defer t)

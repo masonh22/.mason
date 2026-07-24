@@ -204,15 +204,14 @@
     org-buffer))
 
 (defun init-org-buffer ()
-  "Create the '*org*' buffer and switch to it if the current buffer is
-'*scratch*'.
+  "Create the '*org*' buffer.
 
-This is intended to be called from 'after-init-hook'."
+This is intended to be called from 'after-make-frame-functions'."
+  (unless (get-buffer (persp-org-buffer))
   (let ((org-buffer (create-org-buffer)))
-    (when (string= (buffer-name) "*scratch*")
       (switch-to-buffer org-buffer))))
 
-(add-hook 'after-init-hook 'init-org-buffer)
+(add-hook 'after-make-frame-functions 'init-org-buffer)
 
 (defun rename-org-buffer (name)
   (let* ((old-org-name (persp-org-buffer))
@@ -229,14 +228,12 @@ This is intended to be called from 'after-init-hook'."
 ;; Also create the org buffer when using perspective
 (with-eval-after-load 'perspective
   (defun persp-init-org-buffer ()
-    "Create and switch to the '*org*' buffer, unless this is the initial
-perspective."
+    "Switch to the '*org*' buffer, creating it if it doesn't exist."
     (let* ((name (persp-name (persp-curr)))
            (org-name (persp-org-buffer name)))
       (if (get-buffer org-name)
           (persp-add-buffer org-name)
-        (unless (string= name persp-initial-frame-name)
-          (switch-to-buffer (create-org-buffer name))))))
+        (switch-to-buffer (create-org-buffer name)))))
   (add-hook 'persp-created-hook 'persp-init-org-buffer))
 
 (defun enable-superword-in-find-file ()
