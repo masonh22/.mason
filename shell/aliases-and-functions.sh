@@ -49,6 +49,8 @@ alias rm='rm -v'
 # cd
 alias '..'='cd ..'
 alias '...'='cd ../..'
+# misc
+alias todo="rg -i 'todo.?mason'"
 
 # bat/batcat
 if command -v batcat > /dev/null 2>&1; then
