@@ -499,11 +499,6 @@ requiring a mouse event."
   (ediff-split-window-function 'split-window-horizontally)
   (ediff-window-setup-function 'ediff-setup-windows-plain))
 
-(use-package delsel
-  :ensure nil
-  :hook
-  (after-init . (lambda () (delete-selection-mode 1))))
-
 (use-package dired
   :ensure nil
   :custom
