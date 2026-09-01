@@ -120,7 +120,7 @@
     "format-disabled": "󰂲",
     "format-connected": "",
     "tooltip-format": "Devices connected: {num_connections}",
-    "on-click": "blueberry"
+    "on-click": "blueman"
   },
   "pulseaudio": {
     "format": "{icon}",
@@ -167,21 +167,21 @@
   "custom/quit": {
     "format": " 󰗼 ",
     "tooltip": false,
-    "on-click": "loginctl terminate-session $XDG_SESSION_ID"
+    "on-click": "hyprshutdown -t 'Logging out...'"
   },
   "custom/lock": {
     "format": " 󰍁 ",
     "tooltip": false,
-    "on-click": "hyprlock --immediate"
+    "on-click": "hyprlock"
   },
   "custom/reboot": {
     "format": " 󰜉 ",
     "tooltip": false,
-    "on-click": "reboot"
+    "on-click": "hyprshutdown -t 'Restarting...' --post-cmd 'reboot'"
   },
   "custom/power": {
     "format": "  ",
     "tooltip": false,
-    "on-click": "shutdown now"
+    "on-click": "hyprshutdown -t 'Shutting down...' --post-cmd 'shutdown -P 0'"
   }
 }

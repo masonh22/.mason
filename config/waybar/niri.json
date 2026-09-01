@@ -112,7 +112,7 @@
     "format-disabled": "󰂲",
     "format-connected": "",
     "tooltip-format": "Devices connected: {num_connections}",
-    "on-click": "blueberry"
+    "on-click": "blueman"
   },
   "pulseaudio": {
     "format": "{icon}",
@@ -164,7 +164,7 @@
   "custom/lock": {
     "format": " 󰍁 ",
     "tooltip": false,
-    "on-click": "hyprlock --immediate"
+    "on-click": "hyprlock"
   },
   "custom/reboot": {
     "format": " 󰜉 ",
