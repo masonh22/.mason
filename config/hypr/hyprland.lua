@@ -43,7 +43,7 @@ hl.config({
         -- Please see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Tearing/ before you turn this on
         allow_tearing = false,
 
-        layout = "dwindle",
+        layout = "scrolling",
     },
 
     decoration = {
@@ -138,6 +138,7 @@ hl.config({
 hl.config({
     scrolling = {
         fullscreen_on_one_column = true,
+        explicit_column_widths = "0.5,1.0",
     },
 })
 
@@ -232,7 +233,6 @@ hl.window_rule({
     match = { class = "^(steam)$" },
     float = true,
     border_size = 0,
-    size = "1100 700",
     opacity = "1.0 override 1.0 override",
 })
 
@@ -244,7 +244,6 @@ hl.window_rule({
     },
     float = true,
     border_size = 0,
-    size = "460 800",
     opacity = "1.0 override 1.0 override",
 })
 
@@ -253,6 +252,5 @@ hl.window_rule({
     match = { class = "^(FTL.*)$" },
     float = true,
     border_size = 0,
-    size = "1280 720",
     opacity = "1.0 override 1.0 override",
 })

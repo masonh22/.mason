@@ -5,6 +5,24 @@ local menu = "hyprlauncher"
 
 local mainMod = "SUPER"
 
+local function layout_bind(bind_table)
+  return function()
+    local workspace = hl.get_active_special_workspace() or hl.get_active_workspace()
+    if not workspace then return end
+    local layout = workspace.tiled_layout
+    if bind_table[layout] then
+      hl.dispatch(bind_table[layout])
+    elseif bind_table.default then
+      hl.dispatch(bind_table.default)
+    end
+  end
+end
+
+hl.bind(mainMod .. " + M", layout_bind({
+  scrolling = hl.dsp.layout("colresize +conf"),
+  default   = hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }),
+}))
+
 -- Example binds, see https://wiki.hypr.land/Configuring/Basics/Binds/ for more
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + C", hl.dsp.window.close())
@@ -16,7 +34,6 @@ hl.bind(mainMod .. " + SPACE", hl.dsp.exec_cmd(menu))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + J", hl.dsp.layout("togglesplit"))    -- dwindle only
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd("hyprlock"))
-hl.bind(mainMod .. " + M", hl.dsp.window.fullscreen({ mode = "maximized", action = "toggle" }))
 hl.bind("F11", hl.dsp.window.fullscreen({ mode = "fullscreen", action = "toggle" }))
 
 -- Move focus with mainMod + arrow keys
