@@ -79,7 +79,8 @@
               "%b")))))
 
 ;; Restore cursor to last place in a file when reopening
-(save-place-mode 1)
+(setopt save-place-mode t
+        savehist-mode t)
 
 ;; Recenter after restoring cursor position
 (advice-add 'save-place-find-file-hook :after
@@ -166,8 +167,8 @@
 (setq read-process-output-max (* 4 1024 1024))
 
 ;; kill ring
-(setq save-interprogram-paste-before-kill t
-      kill-do-not-save-duplicates t)
+(setopt save-interprogram-paste-before-kill t
+        kill-do-not-save-duplicates t)
 
 ;; auto-select the help window
 (setq help-window-select t
@@ -177,6 +178,13 @@
 (repeat-mode 1)
 
 (setq set-mark-command-repeat-pop t)
+
+;; use flyspell
+(add-hook 'text-mode-hook 'flyspell-mode)
+(add-hook 'prog-mode-hook 'flyspell-prog-mode)
+
+(setopt view-read-only t
+        shell-command-prompt-show-cwd t)
 
 ;; *org* buffer
 (defcustom initial-org-message (purecopy "\
