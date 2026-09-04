@@ -256,14 +256,13 @@ requiring a mouse event."
                 (list (cape-capf-trigger #'tempel-complete ?<))))
   :hook
   (org-mode . tempel-setup-exclusive-capf)
-  (rust-ts-mode . tempel-setup-capf)
   (sh-base-mode . tempel-setup-capf))
 
 (use-package corfu
   ;; Optional customizations
   :custom
   (corfu-cycle t)               ;; Enable cycling for `corfu-next/previous'
-  (corfu-auto t)                ;; Enable auto completion
+  (corfu-auto nil)              ;; Disable auto completion
   (corfu-auto-delay 0.2)        ;; Delay for auto completion
   (corfu-auto-prefix 3)         ;; Minimum length of prefix for auto completion
   (corfu-count 4)               ;; Maximum number of candidates to show
@@ -288,7 +287,13 @@ requiring a mouse event."
         ;; Use tab to enter completion
         ("RET" . nil)
         ("TAB" . corfu-insert)
-        ([tab] . corfu-insert)))
+        ([tab] . corfu-insert)
+        ([remap move-beginning-of-line] . nil)
+        ([remap move-end-of-line] . nil)
+        ([remap move-beginning-of-buffer] . nil)
+        ([remap move-end-of-buffer] . nil)
+        ([remap scroll-down-command] . nil)
+        ([remap scroll-up-command] . nil)))
 
 ;; A few more useful configurations for vertico and corfu...
 (use-package emacs
@@ -318,7 +323,7 @@ requiring a mouse event."
   (setq enable-recursive-minibuffers t)
 
   ;; tab first indents, then tries to complete
-  ;; (setq tab-always-indent 'complete)
+  (setq tab-always-indent 'complete)
 
   ;; TAB cycle if there are only few candidates
   (setq completion-cycle-threshold 3))
