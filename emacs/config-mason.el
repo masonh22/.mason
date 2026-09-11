@@ -179,10 +179,6 @@
 
 (setq set-mark-command-repeat-pop t)
 
-;; use flyspell
-(add-hook 'text-mode-hook 'flyspell-mode)
-(add-hook 'prog-mode-hook 'flyspell-prog-mode)
-
 (setopt view-read-only t
         shell-command-prompt-show-cwd t)
 
