@@ -11,8 +11,8 @@ fi
 export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;31:locus=01:quote=01'
 export GREP_COLORS="mt=01;32" # Matching text in bold green.
 
-if type emacs > /dev/null 2>&1; then
-    export EDITOR='emacsclient --alternate-editor="" -nw'
+if command -v emacs > /dev/null 2>&1; then
+    export EDITOR='emacs'
 else
     export EDITOR=nano
 fi
@@ -35,7 +35,6 @@ fi
 
 # cargo (rust) configuration
 test -r "${HOME}/.cargo/env" && . "${HOME}/.cargo/env"
-# this tells cargo to install stuff in this directory:
 export CARGO_INSTALL_ROOT=${HOME}/.local
 
 # elan (lean) configuration
