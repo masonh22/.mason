@@ -90,8 +90,15 @@ cdp() {
     fi
 }
 
-# cd to the current directory within projects
+# cd to the project root for git repos or PROJECTS
 cdh() {
+    local git_root
+    git_root="$(git rev-parse --show-toplevel 2>&1)"
+    if [ "$?" -eq 0 ]; then
+        cd "$git_root"
+        return
+    fi
+
     if [ -z "$PROJECTS" ]; then
         return
     fi
