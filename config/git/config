@@ -7,6 +7,8 @@
   rebase = false
 [push]
   recurseSubmodules = check
+[rerere]
+  enabled = true
 
 [hook "todo-comments"]
   event = pre-commit
