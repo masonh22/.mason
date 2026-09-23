@@ -12,7 +12,7 @@ export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;31:locus=01:quo
 export GREP_COLORS="mt=01;32" # Matching text in bold green.
 
 if command -v emacs > /dev/null 2>&1; then
-    export EDITOR='emacs'
+    export EDITOR='emacs -nw'
 else
     export EDITOR=nano
 fi
