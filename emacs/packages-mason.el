@@ -535,6 +535,35 @@ requiring a mouse event."
     eshell-mode
     vterm-mode) . with-editor-export-editor))
 
+(use-package kubed
+  :bind-keymap
+  ("s-k" . kubed-prefix-map)
+  :bind
+  (:map kubed-prefix-map
+        ("s" . kubed-statefulset-prefix-map)
+        ("v" . kubed-service-prefix-map)
+        ("S" . kubed-secret-prefix-map))
+  :config
+  (kubed-define-resource statefulset
+      ((ready ".status.readyReplicas" 6
+              (lambda (l r) (< (string-to-number l) (string-to-number r)))
+              (lambda (s) (if (string= s "<none>") "0" s))
+              :right-align t)
+       (current ".status.currentReplicas" 8
+                (lambda (l r) (< (string-to-number l) (string-to-number r)))
+                (lambda (s) (if (string= s "<none>") "0" s))
+                :right-align t)
+       (updated ".status.updatedReplicas" 8
+                (lambda (l r) (< (string-to-number l) (string-to-number r)))
+                (lambda (s) (if (string= s "<none>") "0" s))
+                :right-align t)
+       (reps ".status.replicas" 4
+             (lambda (l r) (< (string-to-number l) (string-to-number r)))
+             nil
+             :right-align t)
+       (creationtimestamp ".metadata.creationTimestamp" 20))
+    :logs t))
+
 ;; emacs start-up profiler
 (use-package esup
   :defer t)
