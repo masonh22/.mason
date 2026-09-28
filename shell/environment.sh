@@ -40,6 +40,17 @@ export CARGO_INSTALL_ROOT=${HOME}/.local
 # elan (lean) configuration
 test -r "${HOME}/.elan/env" && . "${HOME}/.elan/env"
 
+# pnpm configuration
+if command -v pnpm > /dev/null 2>&1; then
+    export PNPM_HOME="${HOME}/.local/share/pnpm"
+    if [ -d "${PNPM_HOME}/bin" ]; then
+        PATH="${PNPM_HOME}/bin:$PATH"
+    else
+        # v10 uses PNPM_HOME as the bin directory
+        PATH="${PNPM_HOME}:$PATH"
+    fi
+fi
+
 # kubectl configuration, initialized lazily because it's slow
 _load_kubectl_completions() {
     unalias kubectl
