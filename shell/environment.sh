@@ -40,6 +40,12 @@ export CARGO_INSTALL_ROOT=${HOME}/.local
 # elan (lean) configuration
 test -r "${HOME}/.elan/env" && . "${HOME}/.elan/env"
 
+# pnpm configuration
+if [ -d "${HOME}/.local/share/pnpm" ]; then
+    export PNPM_HOME="${HOME}/.local/share/pnpm"
+    PATH="${PNPM_HOME}/bin:$PATH"
+fi
+
 # kubectl configuration, initialized lazily because it's slow
 _load_kubectl_completions() {
     unalias kubectl
