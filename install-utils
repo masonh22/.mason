@@ -117,12 +117,13 @@ install_action() {
         # check if there is a default action
         action="${default_action}"
         # override the action if the correct link already exists
-        if [ "$(readlink $dst)" = "$src" ]; then
+        if [ "$(readlink "$dst")" = "$src" ]; then
             action='s'
         elif [ -z "$action" ]; then
             user "File already exists: $dst ($(basename $src)), what to do? (caps applies the action to all remaining files)
 [s]kip, [o]verwrite, [b]ackup"
-            read -n 1 action
+            # Read from /dev/tty in case stdin was redirected
+            read -n 1 -r action 2>/dev/null < /dev/tty || action='s'
         fi
     fi
 
@@ -237,13 +238,13 @@ add_to_config() {
 
     config_dst="${CONFIG_HOME}/${CONFIG_NAME}"
 
-    find "config/${CONFIG_NAME}" -type d -printf '%P\n' | while read -r d; do
+    while read -r d; do
         mkdir -p "$config_dst/$d"
-    done
+    done < <(find "config/${CONFIG_NAME}" -type d -printf '%P\n')
 
-    find "config/${CONFIG_NAME}" -type f -printf '%P\n' | while read -r f; do
+    while read -r f; do
         install_action 'ln -s' "$config_src/$f" "$config_dst/$f"
-    done
+    done < <(find "config/${CONFIG_NAME}" -type f -printf '%P\n')
 }
 
 add_to_bashrc() {
