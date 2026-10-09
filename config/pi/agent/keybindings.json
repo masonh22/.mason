@@ -1,0 +1,15 @@
+{
+  "tui.editor.cursorUp": ["up", "ctrl+p"],
+  "tui.editor.cursorDown": ["down", "ctrl+n"],
+  "tui.editor.historyPrevious": "alt+p",
+  "tui.editor.historyNext": "alt+n",
+  "tui.select.up": ["up", "ctrl+p"],
+  "tui.select.down": ["down", "ctrl+n"],
+  "app.interrupt": ["escape", "ctrl+g"],
+  "app.editor.external": "alt+e",
+  "app.tools.expand": "alt+o",
+  "app.model.cycleForward": [],
+  "app.model.cycleBackward": [],
+  "app.session.togglePath": "alt+p",
+  "app.session.toggleNamedFilter": "alt+n"
+}

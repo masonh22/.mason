@@ -64,4 +64,5 @@ add_to_config git
 add_to_config hypr
 add_to_config i3
 add_to_config niri
+add_to_config pi
 add_to_config waybar

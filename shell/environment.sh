@@ -46,6 +46,9 @@ if [ -d "${HOME}/.local/share/pnpm" ]; then
     PATH="${PNPM_HOME}/bin:$PATH"
 fi
 
+# pi configuration
+export PI_CODING_AGENT_DIR="${HOME}/.config/pi/agent"
+
 # kubectl configuration, initialized lazily because it's slow
 _load_kubectl_completions() {
     unalias kubectl
