@@ -237,7 +237,13 @@ add_to_config() {
 
     config_dst="${CONFIG_HOME}/${CONFIG_NAME}"
 
-    install_action 'cp -rs' "${config_src}/" "$config_dst"
+    find "config/${CONFIG_NAME}" -type d -printf '%P\n' | while read -r d; do
+        mkdir -p "$config_dst/$d"
+    done
+
+    find "config/${CONFIG_NAME}" -type f -printf '%P\n' | while read -r f; do
+        install_action 'ln -s' "$config_src/$f" "$config_dst/$f"
+    done
 }
 
 add_to_bashrc() {
