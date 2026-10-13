@@ -230,21 +230,21 @@ add_to_config() {
         return 1
     fi
 
-    config_src="${INSTALL_HOME}/config/${CONFIG_NAME}"
-    if [ ! -d "$config_src" ]; then
+    config_src="${INSTALL_HOME}/config"
+    if [ ! -d "$config_src/${CONFIG_NAME}" ]; then
         echo "'${CONFIG_NAME}' is not a directory in config/"
         return 1
     fi
 
-    config_dst="${CONFIG_HOME}/${CONFIG_NAME}"
+    config_dst="${CONFIG_HOME}"
 
     while read -r d; do
         mkdir -p "$config_dst/$d"
-    done < <(find "config/${CONFIG_NAME}" -type d -printf '%P\n')
+    done < <(cd config/ && find "${CONFIG_NAME}" -mindepth 1 -type d)
 
     while read -r f; do
         install_action 'ln -s' "$config_src/$f" "$config_dst/$f"
-    done < <(find "config/${CONFIG_NAME}" -type f -printf '%P\n')
+    done < <(cd config/ && find "${CONFIG_NAME}" -mindepth 1 -type f)
 }
 
 add_to_bashrc() {
