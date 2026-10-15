@@ -1,10 +1,12 @@
 # Local config goes in the include
 [include]
   path = ~/.gitconfig.local
+[advice]
+  diverging = false
 [init]
   defaultBranch = master
 [pull]
-  rebase = false
+  ff = only
 [push]
   recurseSubmodules = check
 [rerere]
