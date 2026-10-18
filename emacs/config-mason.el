@@ -182,6 +182,9 @@
 (setopt view-read-only t
         shell-command-prompt-show-cwd t)
 
+;; trusted content
+(add-to-list 'trusted-content "~/Projects/")
+
 ;; *org* buffer
 (defcustom initial-org-message (purecopy "\
 #+title: Scratch buffer
