@@ -240,7 +240,7 @@ add_to_config() {
 
     while read -r d; do
         mkdir -p "$config_dst/$d"
-    done < <(cd config/ && find "${CONFIG_NAME}" -mindepth 1 -type d)
+    done < <(cd config/ && find "${CONFIG_NAME}" -type d)
 
     while read -r f; do
         install_action 'ln -s' "$config_src/$f" "$config_dst/$f"
