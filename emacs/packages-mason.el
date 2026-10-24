@@ -323,10 +323,7 @@ requiring a mouse event."
   (setq enable-recursive-minibuffers t)
 
   ;; tab first indents, then tries to complete
-  (setq tab-always-indent 'complete)
-
-  ;; TAB cycle if there are only few candidates
-  (setq completion-cycle-threshold 3))
+  (setq tab-always-indent 'complete))
 
 ;; use the `orderless' completion style.
 (use-package orderless
