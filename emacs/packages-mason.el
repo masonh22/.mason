@@ -523,7 +523,11 @@ requiring a mouse event."
   :defer t
   :custom
   (magit-define-global-key-bindings 'recommended)
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1)
+  :bind (:map magit-status-mode-map
+              ("C-<tab>" . nil)
+              ("C-S-<tab>" . nil)
+              ("C-<iso-lefttab>" . nil)))
 
 (use-package with-editor
   :defer t
