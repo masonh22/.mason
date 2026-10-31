@@ -23,7 +23,7 @@ __prompt_command() {
     __PROMPT_EXIT=$?
 
     # set terminal title
-    if [ -z "$INSIDE_EMACS" ] || [ "$INSIDE_EMACS" = 'vterm' ]; then
+    if [ -z "$INSIDE_EMACS" ] || [ "$INSIDE_EMACS" == 'vterm' ] || [ "$INSIDE_EMACS" == 'ghostel' ]; then
         printf '\e]2;%s\a' "$MASON_TERM_TITLE"
     fi
 

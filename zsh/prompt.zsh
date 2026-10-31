@@ -21,7 +21,7 @@ MASON_TERM_TITLE="$(hostname -s)"
 # Hook function executed before each prompt
 __mason_prompt_precmd() {
     # Set terminal title
-    if [[ -z "$INSIDE_EMACS" || "$INSIDE_EMACS" == 'vterm' ]]; then
+    if [[ -z "$INSIDE_EMACS" || "$INSIDE_EMACS" == 'vterm' || "$INSIDE_EMACS" == 'ghostel' ]]; then
         printf '\e]2;%s\a' "$MASON_TERM_TITLE"
     fi
 
@@ -52,7 +52,7 @@ __mason_prompt_preexec() {
     fi
 
     # Set the terminal title
-    if [[ -z "$INSIDE_EMACS" || "$INSIDE_EMACS" == 'vterm' ]]; then
+    if [[ -z "$INSIDE_EMACS" || "$INSIDE_EMACS" == 'vterm' || "$INSIDE_EMACS" == 'ghostel' ]]; then
         printf '\e]2;%s %% %s\a' "$MASON_TERM_TITLE" "${truncated_cmd}"
     fi
 }

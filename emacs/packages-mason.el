@@ -576,6 +576,50 @@ requiring a mouse event."
   (vterm-buffer-name-string "*vterm* %s")
   (vterm-kill-buffer-on-exit t))
 
+(use-package ghostel
+  :bind (:map ghostel-semi-char-mode-map
+         ("C-s" . consult-line)
+         ("C-k" . my/ghostel-send-C-k-and-kill))
+  :config
+  (defun my/ghostel-send-C-k-and-kill ()
+    (interactive)
+    (kill-ring-save (point) (line-end-position))
+    (ghostel-send-key "k" "ctrl"))
+  :custom
+  (ghostel-status-mode-line-labels 'words)
+  (ghostel-tramp-shell-integration nil)
+  (ghostel-keymap-exceptions '("C-c" "C-x" "C-u" "C-h" "M-x" "M-:" "C-\\" "C-<tab>" "C-S-<tab>")))
+
+(use-package consult-ghostel
+  :hook (after-init . consult-ghostel-mode)
+  :config
+  (defun consult-ghostel-perspective--pairs (ghostel-buffers)
+    (consult--buffer-query :sort 'visibility
+                           :predicate (lambda (buf) (and (memq buf ghostel-buffers)
+                                                         (persp-is-current-buffer buf t)))
+                           :as #'consult--buffer-pair))
+  (defvar consult-ghostel-perspective-source
+    `( :name     "Ghostel"
+       :narrow   ?g
+       :category buffer
+       :face     consult-buffer
+       :history  buffer-name-history
+       :annotate ,#'ghostel-annotate-buffer
+       :state    ,#'consult--buffer-state
+       :new      ,#'consult-ghostel--spawn
+       :items    ,(lambda () (consult-ghostel-perspective--pairs (ghostel-buffer-list)))))
+  (defun consult-ghostel-perspective (&optional arg)
+    (interactive "P")
+    (if arg
+        (ghostel arg)
+      (consult-ghostel--switch
+       '(consult-ghostel-perspective-source consult-ghostel-source-new)
+       "Ghostel buffer: ")))
+  :bind
+  (("C-x m" . consult-ghostel-perspective)
+   :map ghostel-semi-char-mode-map
+   ("C-c h" . consult-ghostel-history)))
+
 ;; Latex setup.
 ;; See https://docs.doomemacs.org/latest/modules/lang/latex/
 ;; and https://michaelneuper.com/posts/efficient-latex-editing-with-emacs/
