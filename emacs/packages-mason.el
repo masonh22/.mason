@@ -126,7 +126,26 @@
   :custom
   (org-directory "~/Notes/org")
   (org-default-notes-file (concat org-directory "/notes.org"))
-  (org-hide-leading-stars t))
+  (org-hide-leading-stars t)
+  :bind (:map org-mode-map
+              ("C-c M" . mason/org-copy-region-as-markdown))
+  :config
+  (defvar org-export-use-babel)
+  (defun mason/org-copy-region-as-markdown (beg end)
+    "Export region BEG..END as Markdown into the kill ring."
+    (interactive "r")
+    (require 'ox-md)
+    (let* ((org-export-use-babel nil)
+           (md (string-trim
+                (save-restriction
+                  (narrow-to-region beg end)
+                  (org-export-as 'md nil nil t
+                                 '(:section-numbers nil
+                                   :with-toc nil
+                                   :with-sub-superscript {}))))))
+      (kill-new md)
+      (deactivate-mark)
+      (message "Copied %d chars as Markdown" (length md)))))
 
 ;; setq-local tab-line-exclude in *scratch* and *org* buffer
 (use-package tab-line
