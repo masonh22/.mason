@@ -1,38 +1,51 @@
 /**
  * permissions extension
  *
- * Prompts the user to approve or deny every tool call the agent makes.
- * All agent interactions with the outside world go through tool calls:
- * built-in tools (bash, read, write, edit, find, grep, ls), custom tools
- * registered by extensions, and MCP tools. The "tool_call" event covers
- * all of them, so a single hook is enough for the basic version.
- *
- * Behavior:
- * - "ask" (default): shows an approve/deny prompt before execution. The
- *   user can type a denial reason; without one a default message is used.
- * - Denying blocks only that call; the agent sees the denial reason and
- *   can continue. It does not terminate the run.
- * - With no UI (headless mode), every call is denied (fail closed).
- *
- * The denial message sent to the model is self-describing (tool, rule,
- * user reason), because pi's block API carries only that string.
+ * Gates every tool call the agent makes through a permission policy.
  *
  * Policy: rules are loaded from <agent-dir>/permissions.json (see
- * permissions.example.json for a documented example). Tools not covered
- * by any rule follow the config's "default" (ask when unset). Arg-level
- * regex rules are consulted before tool-level and default policies.
+ * permissions.example.json for a documented example). The file defines
+ * named modes; each call is evaluated against the active mode. Tools
+ * not covered by any rule follow the mode's "default" (ask when unset).
+ * Arg-level regex rules are consulted before tool-level and default
+ * policies.
+ *
+ * Modes: shift+tab (or "/permissions") cycles between non-hidden
+ * modes; "/permissions <name>" switches to any mode, including hidden
+ * ones. The active mode is shown in the extension status row below the
+ * footer and recorded in the session, so resuming restores it. Note
+ * that pi reserves shift+tab for app.thinking.cycle unless
+ * keybindings.json rebinds that action.
+ *
+ * Behavior:
+ * - "allow": runs without prompting.
+ * - "deny": blocks the call. Denying blocks only that call; the agent
+ *   sees the denial reason and can continue. It does not terminate the
+ *   run.
+ * - "ask" (default): shows an approve/deny prompt before execution.
+ *   The user can type a denial reason; without one a default message
+ *   is used.
+ * - With no UI (headless mode), "ask" calls are denied (fail closed).
+ *
+ * The denial message sent to the model is self-describing (tool, mode,
+ * rule, user reason), because pi's block API carries only that string.
  *
  * Additionally, every denial is recorded as a "permissions" custom
- * session entry (tool, rule, source, reason, timestamp). Unlike the
- * denial message, these audit entries are not sent to the model; they
- * persist in the session file and render in the transcript only.
+ * session entry (tool, mode, rule, source, reason, timestamp). Unlike
+ * the denial message, these audit entries are not sent to the model;
+ * they persist in the session file and render in the transcript only.
  * Approvals are not logged, to keep session noise down.
  */
 
 import { Box, Text } from "@earendil-works/pi-tui";
-import type { ExtensionAPI, ToolCallEvent } from "@earendil-works/pi-coding-agent";
+import type { ExtensionAPI, ExtensionContext, ToolCallEvent } from "@earendil-works/pi-coding-agent";
 import { DEFAULT_CONFIG, loadPermissionsConfig } from "./config.ts";
-import { describeInput, evaluate, type PolicyDecision } from "./policy.ts";
+import {
+  describeInput,
+  evaluate,
+  type PermissionsConfig,
+  type PolicyDecision,
+} from "./policy.ts";
 import { promptApproval } from "./prompt.ts";
 
 /** How a denial was reached. */
@@ -42,19 +55,31 @@ type AuditSource = "user" | "policy" | "no-ui";
 interface PermissionDenial {
   toolName: string;
   toolCallId: string;
-  decision: "deny";
   /** Policy rule that produced the decision. */
   rule: string;
   source: AuditSource;
+  /** Active mode when the call was denied. */
+  mode: string;
   /** User-provided denial reason, when given. */
   reason?: string;
   timestamp: string;
 }
 
+/** Data stored in each "permissions-mode" custom session entry. */
+interface PermissionModeEntry {
+  mode: string;
+  timestamp: string;
+}
+
 const AUDIT_ENTRY_TYPE = "permissions";
+const MODE_ENTRY_TYPE = "permissions-mode";
+/** Footer status key; the status row shows the active mode. */
+const STATUS_KEY = "permissions";
 
 export default function permissionsExtension(pi: ExtensionAPI) {
-  let config = DEFAULT_CONFIG;
+  let config: PermissionsConfig = DEFAULT_CONFIG;
+  /** Active mode name. */
+  let activeMode: string = config.mode;
 
   pi.on("session_start", async (_event, ctx) => {
     const loaded = loadPermissionsConfig();
@@ -62,6 +87,76 @@ export default function permissionsExtension(pi: ExtensionAPI) {
     for (const error of loaded.errors) {
       ctx.ui.notify(`permissions: ${error}`, "warning");
     }
+    activeMode = config.mode;
+    const restored = restoreMode(ctx);
+    if (restored !== undefined) {
+      activeMode = restored;
+    }
+    updateStatus(ctx);
+  });
+
+  /** Show the active mode in the extension status row below the footer. */
+  const updateStatus = (ctx: ExtensionContext): void => {
+    ctx.ui.setStatus(STATUS_KEY, `mode: ${activeMode}`);
+  };
+
+  /** Last mode recorded in this session's active branch, if still valid. */
+  const restoreMode = (ctx: ExtensionContext): string | undefined => {
+    const entry = ctx.sessionManager
+      .getBranch()
+      .findLast((e) => e.type === "custom" && e.customType === MODE_ENTRY_TYPE);
+    const mode = (entry?.data as PermissionModeEntry | undefined)?.mode;
+    // The newest record names a mode that no longer exists; older
+    // records are unlikely to fare better.
+    return typeof mode === "string" && config.modes.resolved[mode] !== undefined
+      ? mode
+      : undefined;
+  };
+
+  const setMode = (name: string, ctx: ExtensionContext): void => {
+    activeMode = name;
+    pi.appendEntry(MODE_ENTRY_TYPE, {
+      mode: name,
+      timestamp: new Date().toISOString(),
+    } satisfies PermissionModeEntry);
+    updateStatus(ctx);
+    ctx.ui.notify(`permissions mode: ${name}`, "info");
+  };
+
+  const cycleMode = (ctx: ExtensionContext): void => {
+    const cycle = config.modes.cycle;
+    if (cycle.length < 2) {
+      ctx.ui.notify("permissions: no other mode to cycle to; use /permissions <name>", "info");
+      return;
+    }
+    // A hidden active mode is not in the cycle; indexOf returns -1
+    // and the rotation restarts from the first cyclable mode.
+    const index = cycle.indexOf(activeMode);
+    setMode(cycle[(index + 1) % cycle.length], ctx);
+  };
+
+  pi.registerShortcut("shift+tab", {
+    description: "Cycle permissions mode",
+    handler: (ctx) => cycleMode(ctx),
+  });
+
+  pi.registerCommand("permissions", {
+    description: "Cycle permissions mode, or switch to a named mode",
+    handler: async (args, ctx) => {
+      const name = args.trim();
+      if (name === "") {
+        cycleMode(ctx);
+        return;
+      }
+      // config.modes.order includes hidden modes; they are
+      // explicit-switch only.
+      const order = config.modes.order;
+      if (!order.includes(name)) {
+        ctx.ui.notify(`permissions: unknown mode "${name}" (available: ${order.join(", ")})`, "warning");
+        return;
+      }
+      setMode(name, ctx);
+    },
   });
 
   const auditDenial = (entry: PermissionDenial): void => {
@@ -77,16 +172,16 @@ export default function permissionsExtension(pi: ExtensionAPI) {
     auditDenial({
       toolName: event.toolName,
       toolCallId: event.toolCallId,
-      decision: "deny",
       rule: policy.rule,
       source,
+      mode: activeMode,
       ...(reason ? { reason } : {}),
       timestamp: new Date().toISOString(),
     });
     const detail = source === "no-ui" ? "no UI available to ask for approval" : (reason ?? "no reason given");
     return {
       block: true,
-      reason: `[permissions] ${event.toolName} denied (rule: ${policy.rule}): ${detail}`,
+      reason: `[permissions] ${event.toolName} denied (mode: ${activeMode}, rule: ${policy.rule}): ${detail}`,
     };
   };
 
@@ -96,7 +191,8 @@ export default function permissionsExtension(pi: ExtensionAPI) {
     const source = d.source === "user" ? "" : ` (${d.source})`;
     const reason = d.reason ? ` - ${d.reason}` : "";
     const summary =
-      theme.fg("error", `[deny] ${d.toolName}`) + theme.fg("dim", ` rule: ${d.rule}${source}${reason}`);
+      theme.fg("error", `[deny] ${d.toolName}`) +
+      theme.fg("dim", ` mode: ${d.mode} rule: ${d.rule}${source}${reason}`);
 
     if (!expanded) {
       return new Text(summary);
@@ -108,7 +204,7 @@ export default function permissionsExtension(pi: ExtensionAPI) {
   });
 
   pi.on("tool_call", async (event, ctx) => {
-    const policy = evaluate(event.toolName, event.input, config);
+    const policy = evaluate(event.toolName, event.input, config.modes.resolved[activeMode]);
 
     if (policy.decision === "allow") {
       return undefined;

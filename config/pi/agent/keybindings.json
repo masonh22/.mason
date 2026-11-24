@@ -7,6 +7,7 @@
   "tui.select.down": ["down", "ctrl+n"],
   "app.interrupt": ["escape", "ctrl+g"],
   "app.editor.external": "alt+e",
+  "app.thinking.cycle": "alt+t",
   "app.tools.expand": "alt+o",
   "app.model.cycleForward": [],
   "app.model.cycleBackward": [],

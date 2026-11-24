@@ -1,28 +1,70 @@
 {
-  "default": "ask",
-  "tools": {
-    "read": { "policy": "allow" },
-    "grep": { "policy": "allow" },
-    "find": { "policy": "allow" },
-    "ls": { "policy": "allow" },
+  "mode": "read",
+  "modes": {
+    "read": {
+      "default": "ask",
+      "tools": {
+        "read": { "policy": "allow" },
+        "grep": { "policy": "allow" },
+        "find": { "policy": "allow" },
+        "ls": { "policy": "allow" },
+        "tool_search": { "policy": "allow" },
 
-    "write": { "policy": "ask" },
-    "edit": { "policy": "ask" },
+        "bash": {
+          "policy": "ask",
+          "args": [
+            { "path": "command", "regex": "\\brm\\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r|--recursive)", "policy": "deny" },
+            { "path": "command", "regex": "\\b(mkfs\\w*|dd\\s+if=)", "policy": "deny" },
+            { "path": "command", "regex": "(>|>>).*\\.env\\b", "policy": "deny" },
 
-    "bash": {
-      "policy": "ask",
-      "args": [
-        { "path": "command", "regex": "^git (status|diff|log|show|branch)\\b", "policy": "allow" },
-        { "path": "command", "regex": "^npm (test|run|ci)\\b", "policy": "allow" },
-        { "path": "command", "regex": "^ls\\b", "policy": "allow" },
+            { "path": "command", "regex": "\\bsudo\\b", "policy": "ask" },
+            { "path": "command", "regex": "(&&|\\|\\||;)", "policy": "ask" },
+            { "path": "command", "regex": "(\\$\\(|`)", "policy": "ask" },
+            { "path": "command", "regex": "(^|[|;&]\\s*)(curl|wget|nc|ncat|socat|ssh|scp|sftp|rsync|telnet|ftp)\\b", "policy": "ask" },
+            { "path": "command", "regex": "(>>?)\\s*(?!(&|/dev/(null|tty)))\\S", "policy": "ask" },
 
-        { "path": "command", "regex": "\\bsudo\\b", "policy": "deny" },
-        { "path": "command", "regex": "\\brm\\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r|--recursive)", "policy": "deny" },
-        { "path": "command", "regex": "\\b(mkfs|dd if=)\\b", "policy": "deny" },
-        { "path": "command", "regex": "(>|>>).*\\.env\\b", "policy": "deny" },
+            { "path": "command", "regex": "^(grep|egrep|fgrep)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^find\\b(?![^;|&]*\\s(-delete|-exec\\w*|-ok\\w*|-fprint\\w*))", "policy": "allow" },
+            { "path": "command", "regex": "^(ls|ll|dir|tree|exa|eza)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^(cat|head|tail|less|more|bat|nl)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^(sort|uniq|cut|tr|column|tac|rev)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^(basename|dirname|realpath|readlink|which|whereis|type)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^(file|stat|wc|du|df|pwd)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^(whoami|id|uname|hostname|date|uptime)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^(diff|cmp|md5sum|sha1sum|sha256sum|shasum)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^jq\\b", "policy": "allow" },
+            { "path": "command", "regex": "^sed\\b(?![^;|&]*\\s(-i|--in-place)\\b)", "policy": "allow" },
+            { "path": "command", "regex": "^awk\\b", "policy": "allow" },
+            { "path": "command", "regex": "^yq\\b(?![^;|&]*\\s(-i|--inplace)\\b)", "policy": "allow" },
 
-        { "path": "command", "regex": "\\bgit push\\b", "policy": "ask" }
-      ]
+            { "path": "command", "regex": "^git( -C \\S+)? (status|diff|log|show|blame|rev-parse|describe|shortlog|reflog|ls-files|ls-remote|grep|stash list|worktree list|submodule status)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^git( -C \\S+)? branch(?=$|\\s+(-a|-r|-v|-vv|-l|--list|--show-current)\\b)", "policy": "allow" },
+            { "path": "command", "regex": "^git( -C \\S+)? tag(?=$|\\s+(-l|-n\\d*|--list)\\b)", "policy": "allow" },
+            { "path": "command", "regex": "^git( -C \\S+)? remote(?=$|\\s+(-v|--verbose|show)\\b)", "policy": "allow" },
+            { "path": "command", "regex": "^git( -C \\S+)? config\\s+(--get|--get-all|--get-regexp|--list|-l)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^git( -C \\S+)? config\\s+[\\w.-]+$", "policy": "allow" },
+
+            { "path": "command", "regex": "^kubectl (get|describe|logs|top|version|api-resources|api-versions)\\b", "policy": "allow" },
+            { "path": "command", "regex": "^(docker|podman) (ps|images|inspect|logs|version|stats)\\b", "policy": "allow" }
+          ]
+        },
+
+        "powershell": { "policy": "ask" },
+        "codemode": { "policy": "ask" }
+      }
+    },
+
+    "write": {
+      "base": "read",
+      "tools": {
+        "write": { "policy": "allow" },
+        "edit": { "policy": "allow" }
+      }
+    },
+
+    "full": {
+      "hidden": true,
+      "default": "allow"
     }
   }
 }

@@ -6,16 +6,30 @@
  * <agent-dir>/permissions.json (see config.ts for loading and schema
  * validation).
  *
- * Config shape:
+ * Config shape (permissions.json):
  * {
- *   "default": "ask",                 // fallback when no tool rule matches
- *   "tools": {
- *     "read": { "policy": "allow" },
- *     "bash": {
- *       "policy": "ask",
- *       "args": [
- *         { "path": "command", "regex": "^git ", "policy": "allow" }
- *       ]
+ *   "mode": "write",                  // initial mode; defaults to the first
+ *   "modes": {
+ *     "read": {
+ *       "default": "deny",            // fallback when no tool rule matches
+ *       "tools": {
+ *         "read": { "policy": "allow" },
+ *         "bash": {
+ *           "policy": "ask",
+ *           "args": [
+ *             { "path": "command", "regex": "^git ", "policy": "allow" }
+ *           ]
+ *         }
+ *       }
+ *     },
+ *     "write": {
+ *       "base": "read",               // inherit "read", then override below
+ *       "tools": { "write": { "policy": "allow" } }
+ *     },
+ *     "deploy": {
+ *       "base": "write",
+ *       "hidden": true,                // not in the shift+tab cycle
+ *       "tools": { ... }
  *     }
  *   }
  * }
@@ -32,9 +46,10 @@
  * precompiled at load time (see config.ts). They are unanchored searches;
  * use ^ and $ to anchor.
  *
+ * Modes can inherit from another mode via "base" (see resolveMode).
+ * The active mode is chosen and cycled in index.ts.
+ *
  * Planned (not yet implemented):
- * - Modes/profiles (e.g. read-only) that enable sets of tools, layered
- *   over a base mode, cycled with shift+tab.
  * - Wildcard tool names (e.g. "mcp__*" for MCP tools).
  */
 
@@ -64,10 +79,44 @@ export interface ToolPolicy {
   args?: ArgPolicy[];
 }
 
-/** Parsed and validated permissions config. Tools are keyed by tool name. */
+/** Fully resolved policy for one mode. Tools are keyed by tool name. */
 export interface PolicyConfig {
   default: Decision;
   tools: Record<string, ToolPolicy>;
+}
+
+/** One mode as written in the config file, before its base is resolved. */
+export interface ModeDefinition {
+  /** Name of the mode this one inherits from. */
+  base?: string;
+  /** Fallback decision; inherits from the base when unset. */
+  default?: Decision;
+  /** Tool rules; see resolveMode for how these merge with the base's. */
+  tools?: Record<string, ToolPolicy>;
+  /** Exclude from shift+tab cycling; reachable only via "/permissions <name>". */
+  hidden?: boolean;
+}
+
+/** Derived mode data, computed at load time. No serialized counterpart. */
+export interface ModesConfig {
+  /** All valid mode names in definition order. */
+  order: string[];
+  /** Non-hidden mode names; shift+tab cycles through these. */
+  cycle: string[];
+  /** Fully resolved policy per mode name. */
+  resolved: Record<string, PolicyConfig>;
+}
+
+/**
+ * Loaded permissions config; mirrors the serialized format: the
+ * top-level "mode" and "modes" keys become config.mode and
+ * config.modes. The policies in config.modes.resolved are fully
+ * resolved against their base chains.
+ */
+export interface PermissionsConfig {
+  /** Mode a session starts in; the top-level "mode" key. */
+  mode: string;
+  modes: ModesConfig;
 }
 
 /** Look up a value in the tool input by dot path ("" matches the whole input). */
@@ -101,12 +150,12 @@ function regexLabel(regex: RegExp): string {
 }
 
 /**
- * Evaluate a tool call against the config.
+ * Evaluate a tool call against a mode's resolved policy.
  *
  * toolName: the tool being called ("bash", "read", "write", "edit",
  *           "find", "grep", "ls", custom tools, MCP tools, ...).
  * input:    the tool arguments as given by the model (not yet validated).
- * config:   the loaded permissions config.
+ * policy:   the active mode's resolved policy.
  */
 export function evaluate(toolName: string, input: unknown, config: PolicyConfig): PolicyDecision {
   const entry = config.tools[toolName];
@@ -120,6 +169,53 @@ export function evaluate(toolName: string, input: unknown, config: PolicyConfig)
     return { decision: entry.policy, rule: toolName };
   }
   return { decision: config.default, rule: "default" };
+}
+
+/**
+ * Resolve a mode definition against its base chain.
+ *
+ * The mode's own "default" replaces the base's. For tools, the two
+ * entries are merged per tool name:
+ * - a tool only one side mentions is used as-is;
+ * - a tool both sides mention keeps the mode's tool-level policy, and
+ *   concatenates arg rules with the mode's own rules first. Arg rules
+ *   are first-match-wins at evaluation time, so an own rule shadows an
+ *   inherited rule that matches the same input. Arg rules cannot be
+ *   removed, only shadowed.
+ *
+ * A mode without a base starts from ask-everything. Throws on unknown
+ * bases and inheritance cycles.
+ */
+export function resolveMode(
+  definitions: Record<string, ModeDefinition>,
+  name: string,
+  seen: string[] = [],
+): PolicyConfig {
+  const definition = definitions[name];
+  if (!definition) {
+    throw new Error(`mode "${name}" is not defined`);
+  }
+  const chain = [...seen, name];
+  if (seen.includes(name)) {
+    throw new Error(`mode inheritance cycle: ${chain.join(" -> ")}`);
+  }
+  const base: PolicyConfig =
+    definition.base === undefined
+      ? { default: "ask", tools: {} }
+      : resolveMode(definitions, definition.base, chain);
+
+  const tools: Record<string, ToolPolicy> = { ...base.tools };
+  for (const [tool, own] of Object.entries(definition.tools ?? {})) {
+    const inherited = base.tools[tool];
+    tools[tool] =
+      inherited === undefined
+        ? own
+        : { policy: own.policy, args: [...(own.args ?? []), ...(inherited.args ?? [])] };
+  }
+  return {
+    default: definition.default ?? base.default,
+    tools,
+  };
 }
 
 /** Maximum characters of formatted input shown in the approval prompt. */
