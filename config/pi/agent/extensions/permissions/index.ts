@@ -17,6 +17,11 @@
  * The denial message sent to the model is self-describing (tool, rule,
  * user reason), because pi's block API carries only that string.
  *
+ * Policy: rules are loaded from <agent-dir>/permissions.json (see
+ * permissions.example.json for a documented example). Tools not covered
+ * by any rule follow the config's "default" (ask when unset). Arg-level
+ * regex rules are consulted before tool-level and default policies.
+ *
  * Additionally, every denial is recorded as a "permissions" custom
  * session entry (tool, rule, source, reason, timestamp). Unlike the
  * denial message, these audit entries are not sent to the model; they
@@ -25,8 +30,9 @@
  */
 
 import { Box, Text } from "@earendil-works/pi-tui";
-import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import { describeInput, evaluate } from "./policy.ts";
+import type { ExtensionAPI, ToolCallEvent } from "@earendil-works/pi-coding-agent";
+import { DEFAULT_CONFIG, loadPermissionsConfig } from "./config.ts";
+import { describeInput, evaluate, type PolicyDecision } from "./policy.ts";
 import { promptApproval } from "./prompt.ts";
 
 /** How a denial was reached. */
@@ -48,12 +54,40 @@ interface PermissionDenial {
 const AUDIT_ENTRY_TYPE = "permissions";
 
 export default function permissionsExtension(pi: ExtensionAPI) {
+  let config = DEFAULT_CONFIG;
+
+  pi.on("session_start", async (_event, ctx) => {
+    const loaded = loadPermissionsConfig();
+    config = loaded.config;
+    for (const error of loaded.errors) {
+      ctx.ui.notify(`permissions: ${error}`, "warning");
+    }
+  });
+
   const auditDenial = (entry: PermissionDenial): void => {
     try {
       pi.appendEntry(AUDIT_ENTRY_TYPE, entry);
     } catch {
       // Auditing is best effort; never block a decision on logging.
     }
+  };
+
+  /** Record a denial and build the block result sent to the model. */
+  const denyCall = (event: ToolCallEvent, policy: PolicyDecision, source: AuditSource, reason?: string) => {
+    auditDenial({
+      toolName: event.toolName,
+      toolCallId: event.toolCallId,
+      decision: "deny",
+      rule: policy.rule,
+      source,
+      ...(reason ? { reason } : {}),
+      timestamp: new Date().toISOString(),
+    });
+    const detail = source === "no-ui" ? "no UI available to ask for approval" : (reason ?? "no reason given");
+    return {
+      block: true,
+      reason: `[permissions] ${event.toolName} denied (rule: ${policy.rule}): ${detail}`,
+    };
   };
 
   // Compact transcript renderer for permission denials.
@@ -74,43 +108,20 @@ export default function permissionsExtension(pi: ExtensionAPI) {
   });
 
   pi.on("tool_call", async (event, ctx) => {
-    const policy = evaluate(event.toolName, event.input);
-    const timestamp = new Date().toISOString();
+    const policy = evaluate(event.toolName, event.input, config);
 
     if (policy.decision === "allow") {
       return undefined;
     }
 
     if (policy.decision === "deny") {
-      auditDenial({
-        toolName: event.toolName,
-        toolCallId: event.toolCallId,
-        decision: "deny",
-        rule: policy.rule,
-        source: "policy",
-        timestamp,
-      });
-      return {
-        block: true,
-        reason: `[permissions] ${event.toolName} denied (rule: ${policy.rule})`,
-      };
+      return denyCall(event, policy, "policy");
     }
 
     // policy.decision === "ask": prompt the user.
     if (!ctx.hasUI) {
       // No UI available to ask; fail closed.
-      auditDenial({
-        toolName: event.toolName,
-        toolCallId: event.toolCallId,
-        decision: "deny",
-        rule: policy.rule,
-        source: "no-ui",
-        timestamp,
-      });
-      return {
-        block: true,
-        reason: `[permissions] ${event.toolName} denied (rule: ${policy.rule}, no UI available to ask for approval)`,
-      };
+      return denyCall(event, policy, "no-ui");
     }
 
     const approval = await promptApproval(ctx, event.toolName, describeInput(event.input));
@@ -119,20 +130,6 @@ export default function permissionsExtension(pi: ExtensionAPI) {
       return undefined;
     }
 
-    const denialReason = approval.reason
-      ? `[permissions] ${event.toolName} denied (rule: ${policy.rule}): ${approval.reason}`
-      : `[permissions] ${event.toolName} denied (rule: ${policy.rule}), no reason given`;
-
-    auditDenial({
-      toolName: event.toolName,
-      toolCallId: event.toolCallId,
-      decision: "deny",
-      rule: policy.rule,
-      source: "user",
-      ...(approval.reason ? { reason: approval.reason } : {}),
-      timestamp,
-    });
-
-    return { block: true, reason: denialReason };
+    return denyCall(event, policy, "user", approval.reason);
   });
 }

@@ -1,0 +1,28 @@
+{
+  "default": "ask",
+  "tools": {
+    "read": { "policy": "allow" },
+    "grep": { "policy": "allow" },
+    "find": { "policy": "allow" },
+    "ls": { "policy": "allow" },
+
+    "write": { "policy": "ask" },
+    "edit": { "policy": "ask" },
+
+    "bash": {
+      "policy": "ask",
+      "args": [
+        { "path": "command", "regex": "^git (status|diff|log|show|branch)\\b", "policy": "allow" },
+        { "path": "command", "regex": "^npm (test|run|ci)\\b", "policy": "allow" },
+        { "path": "command", "regex": "^ls\\b", "policy": "allow" },
+
+        { "path": "command", "regex": "\\bsudo\\b", "policy": "deny" },
+        { "path": "command", "regex": "\\brm\\s+(-[a-zA-Z]*r[a-zA-Z]*f|-[a-zA-Z]*f[a-zA-Z]*r|--recursive)", "policy": "deny" },
+        { "path": "command", "regex": "\\b(mkfs|dd if=)\\b", "policy": "deny" },
+        { "path": "command", "regex": "(>|>>).*\\.env\\b", "policy": "deny" },
+
+        { "path": "command", "regex": "\\bgit push\\b", "policy": "ask" }
+      ]
+    }
+  }
+}
