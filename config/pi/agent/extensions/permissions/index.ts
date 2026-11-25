@@ -10,12 +10,19 @@
  * Arg-level regex rules are consulted before tool-level and default
  * policies.
  *
- * Modes: shift+tab (or "/permissions") cycles between non-hidden
- * modes; "/permissions <name>" switches to any mode, including hidden
- * ones. The active mode is shown in the extension status row below the
- * footer and recorded in the session, so resuming restores it. Note
- * that pi reserves shift+tab for app.thinking.cycle unless
- * keybindings.json rebinds that action.
+ * Groups: the config can also define named tool groups (typically MCP
+ * servers); see policy.ts for how a group's level gates its tools. A
+ * tool claimed by a group never reaches the mode policy.
+ *
+ * Modes: shift+tab cycles between non-hidden modes; "/permissions <name>"
+ * switches to any mode, including hidden ones. "/permissions groups"
+ * lists groups, and "/permissions groups <name> <level>" sets one. In
+ * TUI mode "/permissions" opens a menu for both; elsewhere it cycles
+ * modes, so RPC keeps working. The active mode and group levels are
+ * shown in the extension status row below the footer and recorded in
+ * the session, so resuming restores them. Note that pi reserves
+ * shift+tab for app.thinking.cycle unless keybindings.json rebinds
+ * that action.
  *
  * Behavior:
  * - "allow": runs without prompting.
@@ -37,14 +44,19 @@
  * Approvals are not logged, to keep session noise down.
  */
 
-import { Box, Text } from "@earendil-works/pi-tui";
-import type { ExtensionAPI, ExtensionContext, ToolCallEvent } from "@earendil-works/pi-coding-agent";
+import { Box, Container, SettingsList, Text, type SettingItem } from "@earendil-works/pi-tui";
+import { getSettingsListTheme, type ExtensionAPI, type ExtensionContext, type ToolCallEvent } from "@earendil-works/pi-coding-agent";
 import { DEFAULT_CONFIG, loadPermissionsConfig } from "./config.ts";
 import {
   describeInput,
   evaluate,
+  evaluateGroup,
+  GROUP_LEVELS,
+  isGroupLevel,
+  type GroupLevel,
   type PermissionsConfig,
   type PolicyDecision,
+  type ToolPattern,
 } from "./policy.ts";
 import { promptApproval } from "./prompt.ts";
 
@@ -71,8 +83,16 @@ interface PermissionModeEntry {
   timestamp: string;
 }
 
+/** Data stored in each "permissions-group" custom session entry. */
+interface PermissionGroupEntry {
+  group: string;
+  level: GroupLevel;
+  timestamp: string;
+}
+
 const AUDIT_ENTRY_TYPE = "permissions";
 const MODE_ENTRY_TYPE = "permissions-mode";
+const GROUP_ENTRY_TYPE = "permissions-group";
 /** Footer status key; the status row shows the active mode. */
 const STATUS_KEY = "permissions";
 
@@ -80,6 +100,8 @@ export default function permissionsExtension(pi: ExtensionAPI) {
   let config: PermissionsConfig = DEFAULT_CONFIG;
   /** Active mode name. */
   let activeMode: string = config.mode;
+  /** Current level per group name. */
+  let groupLevels: Record<string, GroupLevel> = {};
 
   pi.on("session_start", async (_event, ctx) => {
     const loaded = loadPermissionsConfig();
@@ -88,16 +110,28 @@ export default function permissionsExtension(pi: ExtensionAPI) {
       ctx.ui.notify(`permissions: ${error}`, "warning");
     }
     activeMode = config.mode;
+    groupLevels = {};
+    for (const name of config.groups.order) {
+      groupLevels[name] = config.groups.definitions[name].default;
+    }
     const restored = restoreMode(ctx);
     if (restored !== undefined) {
       activeMode = restored;
     }
+    restoreGroupLevels(ctx);
     updateStatus(ctx);
   });
 
-  /** Show the active mode in the extension status row below the footer. */
+  /** Show the active mode, plus groups off their default level, in the status row. */
   const updateStatus = (ctx: ExtensionContext): void => {
-    ctx.ui.setStatus(STATUS_KEY, `mode: ${activeMode}`);
+    let status = `mode: ${activeMode}`;
+    const changed = config.groups.order.filter(
+      (name) => groupLevels[name] !== config.groups.definitions[name].default,
+    );
+    if (changed.length > 0) {
+      status += ` | ${changed.map((name) => `${name}: ${groupLevels[name]}`).join(", ")}`;
+    }
+    ctx.ui.setStatus(STATUS_KEY, status);
   };
 
   /** Last mode recorded in this session's active branch, if still valid. */
@@ -113,14 +147,47 @@ export default function permissionsExtension(pi: ExtensionAPI) {
       : undefined;
   };
 
-  const setMode = (name: string, ctx: ExtensionContext): void => {
+  /** Replay group-level records from the active branch; last write per group wins. */
+  const restoreGroupLevels = (ctx: ExtensionContext): void => {
+    for (const entry of ctx.sessionManager.getBranch()) {
+      if (entry.type !== "custom" || entry.customType !== GROUP_ENTRY_TYPE) {
+        continue;
+      }
+      const data = entry.data as PermissionGroupEntry | undefined;
+      if (data && isGroupLevel(data.level) && Object.hasOwn(config.groups.definitions, data.group)) {
+        groupLevels[data.group] = data.level;
+      }
+    }
+  };
+
+  const setMode = (name: string, ctx: ExtensionContext, notify = true): void => {
     activeMode = name;
     pi.appendEntry(MODE_ENTRY_TYPE, {
       mode: name,
       timestamp: new Date().toISOString(),
     } satisfies PermissionModeEntry);
     updateStatus(ctx);
-    ctx.ui.notify(`permissions mode: ${name}`, "info");
+    if (notify) {
+      ctx.ui.notify(`permissions mode: ${name}`, "info");
+    }
+  };
+
+  const setGroupLevel = (
+    name: string,
+    level: GroupLevel,
+    ctx: ExtensionContext,
+    notify = true,
+  ): void => {
+    groupLevels[name] = level;
+    pi.appendEntry(GROUP_ENTRY_TYPE, {
+      group: name,
+      level,
+      timestamp: new Date().toISOString(),
+    } satisfies PermissionGroupEntry);
+    updateStatus(ctx);
+    if (notify) {
+      ctx.ui.notify(`permissions group ${name}: ${level}`, "info");
+    }
   };
 
   const cycleMode = (ctx: ExtensionContext): void => {
@@ -141,15 +208,39 @@ export default function permissionsExtension(pi: ExtensionAPI) {
   });
 
   pi.registerCommand("permissions", {
-    description: "Cycle permissions mode, or switch to a named mode",
+    description: "Permissions menu; switch mode or set a group level",
     handler: async (args, ctx) => {
-      const name = args.trim();
-      if (name === "") {
-        cycleMode(ctx);
+      const tokens = args.trim().split(/\s+/).filter(Boolean);
+
+      if (tokens.length === 0) {
+        // TUI gets the interactive menu; other modes cycle so RPC
+        // mode switching stays scriptable.
+        if (ctx.mode === "tui") {
+          await showMenu(ctx);
+        } else {
+          cycleMode(ctx);
+        }
         return;
       }
+
+      // The literal "groups" always routes to the groups subcommand;
+      // a mode with that name is shadowed.
+      if (tokens[0] === "groups") {
+        groupsCommand(tokens.slice(1), ctx);
+        return;
+      }
+
+      if (tokens.length > 1) {
+        ctx.ui.notify(
+          "usage: /permissions [mode] | /permissions groups [name [level]]",
+          "warning",
+        );
+        return;
+      }
+
       // config.modes.order includes hidden modes; they are
       // explicit-switch only.
+      const name = tokens[0];
       const order = config.modes.order;
       if (!order.includes(name)) {
         ctx.ui.notify(`permissions: unknown mode "${name}" (available: ${order.join(", ")})`, "warning");
@@ -158,6 +249,128 @@ export default function permissionsExtension(pi: ExtensionAPI) {
       setMode(name, ctx);
     },
   });
+
+  /** "/permissions groups [name [level]]": list groups or set a level. */
+  const groupsCommand = (tokens: string[], ctx: ExtensionContext): void => {
+    const order = config.groups.order;
+
+    if (tokens.length === 0) {
+      if (order.length === 0) {
+        ctx.ui.notify("permissions: no groups configured", "info");
+        return;
+      }
+      const lines = order.map((name) => describeGroup(name));
+      ctx.ui.notify(`permissions groups:\n${lines.join("\n")}`, "info");
+      return;
+    }
+
+    const name = tokens[0];
+    if (!order.includes(name)) {
+      ctx.ui.notify(
+        `permissions: unknown group "${name}" (available: ${order.join(", ")})`,
+        "warning",
+      );
+      return;
+    }
+
+    if (tokens.length === 1) {
+      const group = config.groups.definitions[name];
+      const list = (patterns: ToolPattern[]) =>
+        patterns.length > 0 ? patterns.map((p) => p.pattern).join(", ") : "(none)";
+      ctx.ui.notify(
+        `permissions group ${describeGroup(name)}\n` +
+          `read tools: ${list(group.read)}\n` +
+          `write tools: ${list(group.write)}`,
+        "info",
+      );
+      return;
+    }
+
+    if (tokens.length > 2) {
+      ctx.ui.notify(
+        `usage: /permissions groups ${name} <${GROUP_LEVELS.join("|")}>`,
+        "warning",
+      );
+      return;
+    }
+
+    const level = tokens[1];
+    if (!isGroupLevel(level)) {
+      ctx.ui.notify(
+        `permissions: level must be one of ${GROUP_LEVELS.join(", ")}`,
+        "warning",
+      );
+      return;
+    }
+    setGroupLevel(name, level, ctx);
+  };
+
+  const describeGroup = (name: string): string => {
+    const group = config.groups.definitions[name];
+    const level = groupLevels[name];
+    const suffix = level === group.default ? "" : ` (default: ${group.default})`;
+    return `${name}: ${level}${suffix} [${group.tools.map((t) => t.pattern).join(", ")}]`;
+  };
+
+  /** Interactive settings list for the mode and group levels (TUI only). */
+  const showMenu = async (ctx: ExtensionContext): Promise<void> => {
+    await ctx.ui.custom((tui, theme, _keybindings, done) => {
+      const items: SettingItem[] = [
+        {
+          id: "mode",
+          label: "mode",
+          description: "Permissions mode",
+          currentValue: activeMode,
+          values: config.modes.order,
+        },
+        ...config.groups.order.map((name) => {
+          const group = config.groups.definitions[name];
+          return {
+            id: `group:${name}`,
+            label: name,
+            description: group.description ?? group.tools.map((t) => t.pattern).join(", "),
+            currentValue: groupLevels[name],
+            values: [...GROUP_LEVELS],
+          } satisfies SettingItem;
+        }),
+      ];
+
+      const list = new SettingsList(
+        items,
+        Math.min(items.length + 2, 15),
+        getSettingsListTheme(),
+        (id, newValue) => {
+          if (id === "mode") {
+            setMode(newValue, ctx, false);
+          } else {
+            setGroupLevel(id.slice("group:".length), newValue as GroupLevel, ctx, false);
+          }
+        },
+        () => done(undefined),
+      );
+
+      const container = new Container();
+      container.addChild(new Text(theme.fg("accent", theme.bold("Permissions")), 0, 0));
+      container.addChild(new Text("", 0, 0));
+      container.addChild(list);
+
+      return {
+        // Let PageUp/PageDown page the list instead of scrolling the
+        // fullscreen transcript.
+        capturesViewportInput: list.capturesViewportInput,
+        render(width: number) {
+          return container.render(width);
+        },
+        invalidate() {
+          container.invalidate();
+        },
+        handleInput(data: string) {
+          list.handleInput?.(data);
+          tui.requestRender();
+        },
+      };
+    });
+  };
 
   const auditDenial = (entry: PermissionDenial): void => {
     try {
@@ -204,7 +417,10 @@ export default function permissionsExtension(pi: ExtensionAPI) {
   });
 
   pi.on("tool_call", async (event, ctx) => {
-    const policy = evaluate(event.toolName, event.input, config.modes.resolved[activeMode]);
+    // Groups claim tools first; everything else falls to the mode.
+    const policy =
+      evaluateGroup(event.toolName, config.groups, groupLevels) ??
+      evaluate(event.toolName, event.input, config.modes.resolved[activeMode]);
 
     if (policy.decision === "allow") {
       return undefined;

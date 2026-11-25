@@ -14,6 +14,7 @@
  *       "default": "deny",            // fallback when no tool rule matches
  *       "tools": {
  *         "read": { "policy": "allow" },
+ *         "mcp__github__*": { "policy": "ask" },  // "*" wildcard entry
  *         "bash": {
  *           "policy": "ask",
  *           "args": [
@@ -31,14 +32,33 @@
  *       "hidden": true,                // not in the shift+tab cycle
  *       "tools": { ... }
  *     }
+ *   },
+ *   "groups": {
+ *     "notion": {
+ *       "description": "Notion workspace",
+ *       "tools": ["mcp__notion__*"],    // patterns claiming tools for the group
+ *       "read": ["mcp__notion__get_*"],  // read-classified tools
+ *       "write": ["mcp__notion__update_*"], // write-classified tools
+ *       "default": "ask"              // starting level: deny|ask|read|write|full
+ *     }
  *   }
  * }
  *
  * Evaluation:
- * 1. If the config has an entry for the called tool, its arg rules are
- *    tested in order; the first match wins.
- * 2. If no arg rule matches, the tool entry's policy applies.
- * 3. Otherwise the global default applies.
+ * 1. If a group's "tools" patterns match the called tool name (first
+ *    group in config order wins), the group's current level decides:
+ *    deny blocks everything; ask prompts for everything; read allows
+ *    read-classified tools and prompts for the rest; write allows
+ *    read- and write-classified tools and prompts for the rest; full
+ *    allows everything. Tools matching the group but no "read" or
+ *    "write" pattern are undeclared.
+ * 2. Otherwise the active mode applies. Exact "tools" entries win
+ *    over wildcard entries (keys containing "*"); among wildcards the
+ *    first match wins, with a mode's own entries tested before its
+ *    base's. Within the matched entry, arg rules are tested in order
+ *    and the first match wins.
+ * 3. If no arg rule matches, the matched entry's policy applies.
+ * 4. Otherwise the global default applies.
  *
  * Arg rules match a value at a dot path into the tool input ("command",
  * "options.recursive", ...). An empty path matches the whole input,
@@ -47,13 +67,22 @@
  * use ^ and $ to anchor.
  *
  * Modes can inherit from another mode via "base" (see resolveMode).
- * The active mode is chosen and cycled in index.ts.
- *
- * Planned (not yet implemented):
- * - Wildcard tool names (e.g. "mcp__*" for MCP tools).
+ * The active mode is chosen and cycled in index.ts; group levels are
+ * switched there too.
  */
 
 export type Decision = "allow" | "deny" | "ask";
+
+/** Access level for a tool group, from most to least restrictive. */
+export type GroupLevel = "deny" | "ask" | "read" | "write" | "full";
+
+/** Group levels in cycle order. */
+export const GROUP_LEVELS: readonly GroupLevel[] = ["deny", "ask", "read", "write", "full"];
+
+/** Type guard for values that must be one of GROUP_LEVELS. */
+export function isGroupLevel(value: unknown): value is GroupLevel {
+  return typeof value === "string" && (GROUP_LEVELS as readonly string[]).includes(value);
+}
 
 /** Result of evaluating a tool call against the policy. */
 export interface PolicyDecision {
@@ -83,6 +112,17 @@ export interface ToolPolicy {
 export interface PolicyConfig {
   default: Decision;
   tools: Record<string, ToolPolicy>;
+  /** Wildcard "tools" entries, tested after exact names in order; first match wins. */
+  wildcards: WildcardToolPolicy[];
+}
+
+/** A wildcard "tools" entry from a mode, kept in match order. */
+export interface WildcardToolPolicy {
+  /** Tool name pattern where "*" matches any characters. */
+  pattern: string;
+  /** The pattern, compiled at load time. */
+  regex: RegExp;
+  policy: ToolPolicy;
 }
 
 /** One mode as written in the config file, before its base is resolved. */
@@ -110,13 +150,102 @@ export interface ModesConfig {
 /**
  * Loaded permissions config; mirrors the serialized format: the
  * top-level "mode" and "modes" keys become config.mode and
- * config.modes. The policies in config.modes.resolved are fully
- * resolved against their base chains.
+ * config.modes, and "groups" becomes config.groups. The policies in
+ * config.modes.resolved are fully resolved against their base chains.
  */
 export interface PermissionsConfig {
   /** Mode a session starts in; the top-level "mode" key. */
   mode: string;
   modes: ModesConfig;
+  groups: GroupsConfig;
+}
+
+/** A tool-name pattern ("*" matches any characters) with its compiled regex. */
+export interface ToolPattern {
+  pattern: string;
+  regex: RegExp;
+}
+
+/** One tool group as written in the config file. */
+export interface GroupDefinition {
+  /** One-line description for menus and listings. */
+  description?: string;
+  /** Tool name patterns claiming tools for this group; "*" is a wildcard. */
+  tools: ToolPattern[];
+  /** Patterns for read-classified tools. */
+  read: ToolPattern[];
+  /** Patterns for write-classified tools. */
+  write: ToolPattern[];
+  /** Level a session starts at. */
+  default: GroupLevel;
+}
+
+/** Parsed "groups" section of the config. */
+export interface GroupsConfig {
+  /** Group names in definition order; the first group claiming a tool wins. */
+  order: string[];
+  definitions: Record<string, GroupDefinition>;
+}
+
+/** Compile a tool-name pattern into an anchored regex; "*" matches any characters. */
+export function toolPatternRegex(pattern: string): RegExp {
+  const escaped = pattern
+    .split("*")
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join(".*");
+  return new RegExp(`^${escaped}$`);
+}
+
+function matchesAnyPattern(patterns: ToolPattern[], name: string): boolean {
+  return patterns.some((p) => p.regex.test(name));
+}
+
+/** First group whose "tools" patterns claim the tool, in config order. */
+function findGroup(toolName: string, groups: GroupsConfig): string | undefined {
+  for (const name of groups.order) {
+    if (matchesAnyPattern(groups.definitions[name].tools, toolName)) {
+      return name;
+    }
+  }
+  return undefined;
+}
+
+type ToolClass = "read" | "write" | "undeclared";
+
+/** Classify a claimed tool against the group's "read"/"write" patterns. */
+function classifyTool(toolName: string, group: GroupDefinition): ToolClass {
+  if (matchesAnyPattern(group.read, toolName)) {
+    return "read";
+  }
+  if (matchesAnyPattern(group.write, toolName)) {
+    return "write";
+  }
+  return "undeclared";
+}
+
+/**
+ * Evaluate a tool call against its group's current level; see the
+ * module header for level semantics. Returns undefined when no group
+ * claims the tool, so the caller falls back to the mode policy.
+ */
+export function evaluateGroup(
+  toolName: string,
+  groups: GroupsConfig,
+  levels: Record<string, GroupLevel>,
+): PolicyDecision | undefined {
+  const name = findGroup(toolName, groups);
+  if (name === undefined) {
+    return undefined;
+  }
+  const group = groups.definitions[name];
+  const level = levels[name] ?? group.default;
+  const klass = classifyTool(toolName, group);
+  const allowed =
+    level === "full" ||
+    (level === "read" && klass === "read") ||
+    (level === "write" && klass !== "undeclared");
+  const decision: Decision = level === "deny" ? "deny" : allowed ? "allow" : "ask";
+  return { decision, rule: `group ${name} (${level}, ${klass})` };
 }
 
 /** Look up a value in the tool input by dot path ("" matches the whole input). */
@@ -158,17 +287,26 @@ function regexLabel(regex: RegExp): string {
  * policy:   the active mode's resolved policy.
  */
 export function evaluate(toolName: string, input: unknown, config: PolicyConfig): PolicyDecision {
-  const entry = config.tools[toolName];
-  if (entry) {
-    for (const arg of entry.args ?? []) {
-      if (argMatches(arg, input)) {
-        const path = arg.path === "" ? "<input>" : arg.path;
-        return { decision: arg.policy, rule: `${toolName}:${path}:${regexLabel(arg.regex)}` };
-      }
-    }
-    return { decision: entry.policy, rule: toolName };
+  const exact = config.tools[toolName];
+  if (exact) {
+    return evaluateEntry(input, exact, toolName);
+  }
+  const wildcard = config.wildcards.find((w) => w.regex.test(toolName));
+  if (wildcard) {
+    return evaluateEntry(input, wildcard.policy, wildcard.pattern);
   }
   return { decision: config.default, rule: "default" };
+}
+
+/** Apply one tool entry's arg rules, then its tool-level policy. */
+function evaluateEntry(input: unknown, entry: ToolPolicy, rule: string): PolicyDecision {
+  for (const arg of entry.args ?? []) {
+    if (argMatches(arg, input)) {
+      const path = arg.path === "" ? "<input>" : arg.path;
+      return { decision: arg.policy, rule: `${rule}:${path}:${regexLabel(arg.regex)}` };
+    }
+  }
+  return { decision: entry.policy, rule };
 }
 
 /**
@@ -182,6 +320,11 @@ export function evaluate(toolName: string, input: unknown, config: PolicyConfig)
  *   are first-match-wins at evaluation time, so an own rule shadows an
  *   inherited rule that matches the same input. Arg rules cannot be
  *   removed, only shadowed.
+ *
+ * Wildcard entries (keys containing "*") are kept in a separate
+ * ordered list, the mode's own entries before its base's, so an own
+ * wildcard shadows an inherited one that matches the same tool.
+ * Exact entries always win over wildcards at evaluation time.
  *
  * A mode without a base starts from ask-everything. Throws on unknown
  * bases and inheritance cycles.
@@ -201,11 +344,16 @@ export function resolveMode(
   }
   const base: PolicyConfig =
     definition.base === undefined
-      ? { default: "ask", tools: {} }
+      ? { default: "ask", tools: {}, wildcards: [] }
       : resolveMode(definitions, definition.base, chain);
 
   const tools: Record<string, ToolPolicy> = { ...base.tools };
+  const ownWildcards: WildcardToolPolicy[] = [];
   for (const [tool, own] of Object.entries(definition.tools ?? {})) {
+    if (tool.includes("*")) {
+      ownWildcards.push({ pattern: tool, regex: toolPatternRegex(tool), policy: own });
+      continue;
+    }
     const inherited = base.tools[tool];
     tools[tool] =
       inherited === undefined
@@ -215,6 +363,7 @@ export function resolveMode(
   return {
     default: definition.default ?? base.default,
     tools,
+    wildcards: [...ownWildcards, ...base.wildcards],
   };
 }
 

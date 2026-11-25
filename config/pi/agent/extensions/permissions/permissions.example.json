@@ -66,5 +66,23 @@
       "hidden": true,
       "default": "allow"
     }
+  },
+
+  "groups": {
+    "notion": {
+      "description": "Notion workspace",
+      "tools": ["mcp__notion__*"],
+      "read": ["mcp__notion__search", "mcp__notion__fetch", "mcp__notion__get_*"],
+      "write": ["mcp__notion__create_*", "mcp__notion__update_*", "mcp__notion__archive_*"],
+      "default": "read"
+    },
+
+    "slack": {
+      "description": "Slack messaging",
+      "tools": ["mcp__slack__*"],
+      "read": ["mcp__slack__conversations_*", "mcp__slack__users_list", "mcp__slack__search"],
+      "write": ["mcp__slack__chat_postMessage"],
+      "default": "ask"
+    }
   }
 }

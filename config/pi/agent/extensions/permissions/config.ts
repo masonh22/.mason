@@ -14,6 +14,11 @@
  * starts at the top-level "mode" name, or the first defined mode,
  * and is cycled in index.ts.
  *
+ * A "groups" object defines named tool groups (typically MCP
+ * servers); see policy.ts for patterns, levels, and evaluation
+ * order. Groups claim tools before the active mode sees them, and
+ * are switched in index.ts.
+ *
  * A missing file is not an error: the DEFAULT_CONFIG applies (built-in
  * "read" and "write" modes). Invalid parts of the file are reported as
  * errors and dropped; everything else still applies. If the file is
@@ -27,16 +32,26 @@ import { getAgentDir } from "@earendil-works/pi-coding-agent";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {
+  GROUP_LEVELS,
+  isGroupLevel,
   resolveMode,
+  toolPatternRegex,
   type ArgPolicy,
   type Decision,
+  type GroupDefinition,
+  type GroupsConfig,
   type ModeDefinition,
+  type ModesConfig,
   type PermissionsConfig,
   type PolicyConfig,
+  type ToolPattern,
   type ToolPolicy,
 } from "./policy.ts";
 
 const DECISIONS: readonly Decision[] = ["allow", "ask", "deny"];
+
+/** Groups used when the config defines none. */
+const EMPTY_GROUPS: GroupsConfig = { order: [], definitions: {} };
 
 function bashArg(policy: Decision, regex: RegExp): ArgPolicy {
   return { path: "command", regex, policy };
@@ -118,12 +133,12 @@ const DEFAULT_MODE_DEFINITIONS: Record<string, ModeDefinition> = {
   },
 };
 
-function defaultModesConfig(): PermissionsConfig {
+function defaultModeConfig(): { mode: string; modes: ModesConfig } {
   return buildModesConfig(DEFAULT_MODE_DEFINITIONS, "read", []);
 }
 
 /** Used when the config file is missing or too broken to parse. */
-export const DEFAULT_CONFIG: PermissionsConfig = defaultModesConfig();
+export const DEFAULT_CONFIG: PermissionsConfig = { ...defaultModeConfig(), groups: EMPTY_GROUPS };
 
 export function permissionsConfigPath(): string {
   return path.join(getAgentDir(), "permissions.json");
@@ -204,6 +219,98 @@ function parseToolPolicy(
   return { policy, ...(args ? { args } : {}) };
 }
 
+function parseToolPatterns(value: unknown, errors: string[], where: string): ToolPattern[] | undefined {
+  if (!Array.isArray(value)) {
+    errors.push(`${where}: must be an array of strings`);
+    return undefined;
+  }
+  const parsed: ToolPattern[] = [];
+  value.forEach((entry, i) => {
+    if (typeof entry !== "string" || entry === "") {
+      errors.push(`${where}[${i}]: must be a non-empty string`);
+    } else {
+      parsed.push({ pattern: entry, regex: toolPatternRegex(entry) });
+    }
+  });
+  return parsed;
+}
+
+function parseGroupDefinition(name: string, value: unknown, errors: string[]): GroupDefinition | undefined {
+  const where = `permissions.json: groups["${name}"]`;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    errors.push(`${where}: must be an object`);
+    return undefined;
+  }
+  const entry = value as Record<string, unknown>;
+
+  const definition: GroupDefinition = { tools: [], read: [], write: [], default: "ask" };
+
+  if (entry.description !== undefined) {
+    if (typeof entry.description !== "string") {
+      errors.push(`${where}: "description" must be a string`);
+    } else {
+      definition.description = entry.description;
+    }
+  }
+
+  if (entry.tools === undefined) {
+    errors.push(`${where}: "tools" is required`);
+    return undefined;
+  }
+  const tools = parseToolPatterns(entry.tools, errors, `${where}.tools`);
+  if (tools === undefined) {
+    return undefined;
+  }
+  if (tools.length === 0) {
+    errors.push(`${where}.tools: must list at least one tool pattern`);
+    return undefined;
+  }
+  definition.tools = tools;
+
+  if (entry.read !== undefined) {
+    const read = parseToolPatterns(entry.read, errors, `${where}.read`);
+    if (read) {
+      definition.read = read;
+    }
+  }
+
+  if (entry.write !== undefined) {
+    const write = parseToolPatterns(entry.write, errors, `${where}.write`);
+    if (write) {
+      definition.write = write;
+    }
+  }
+
+  if (entry.default !== undefined) {
+    if (!isGroupLevel(entry.default)) {
+      errors.push(`${where}: "default" must be one of ${GROUP_LEVELS.join(", ")}`);
+    } else {
+      definition.default = entry.default;
+    }
+  }
+  return definition;
+}
+
+function parseGroups(value: unknown, errors: string[]): GroupsConfig {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    errors.push('permissions.json: "groups" must be an object keyed by group name');
+    return EMPTY_GROUPS;
+  }
+  const groups: GroupsConfig = { order: [], definitions: {} };
+  for (const [name, groupValue] of Object.entries(value)) {
+    if (name === "") {
+      errors.push("permissions.json: group names must be non-empty");
+      continue;
+    }
+    const definition = parseGroupDefinition(name, groupValue, errors);
+    if (definition) {
+      groups.order.push(name);
+      groups.definitions[name] = definition;
+    }
+  }
+  return groups;
+}
+
 function parseModeDefinition(name: string, value: unknown, errors: string[]): ModeDefinition | undefined {
   const where = `permissions.json: modes["${name}"]`;
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
@@ -260,7 +367,7 @@ function buildModesConfig(
   definitions: Record<string, ModeDefinition>,
   mode: string | undefined,
   errors: string[],
-): PermissionsConfig {
+): { mode: string; modes: ModesConfig } {
   const order = Object.keys(definitions);
   const resolved: Record<string, PolicyConfig> = {};
   for (const name of order) {
@@ -274,7 +381,7 @@ function buildModesConfig(
   const valid = order.filter((name) => resolved[name] !== undefined);
   if (valid.length === 0) {
     errors.push("permissions.json: no usable modes; using built-in modes");
-    return defaultModesConfig();
+    return defaultModeConfig();
   }
 
   // Hidden modes stay reachable by name; they just never appear in
@@ -318,6 +425,8 @@ export function loadPermissionsConfig(): { config: PermissionsConfig; errors: st
 
   const errors: string[] = [];
 
+  const groups = root.groups === undefined ? EMPTY_GROUPS : parseGroups(root.groups, errors);
+
   if (typeof root.modes !== "object" || root.modes === null || Array.isArray(root.modes)) {
     errors.push('permissions.json: "modes" must be an object keyed by mode name');
     return { config: DEFAULT_CONFIG, errors };
@@ -346,5 +455,6 @@ export function loadPermissionsConfig(): { config: PermissionsConfig; errors: st
       definitions[name] = definition;
     }
   }
-  return { config: buildModesConfig(definitions, mode, errors), errors };
+  const built = buildModesConfig(definitions, mode, errors);
+  return { config: { ...built, groups }, errors };
 }
