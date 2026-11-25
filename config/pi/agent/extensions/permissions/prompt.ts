@@ -5,7 +5,7 @@
  * - Number keys (1-9) select and submit the matching option directly.
  * - Select up/down keys move between options.
  * - Enter submits the highlighted option.
- * - Hovering "Deny" and typing a non-digit starts an inline reason;
+ * - With "Deny" highlighted, typing a non-digit starts an inline reason;
  *   Enter denies with that reason (an empty reason falls back to the
  *   default message).
  * - Esc while typing goes back to the options.
@@ -37,14 +37,14 @@ const OPTIONS: PermissionOption[] = [
   { label: "Deny", action: "deny" },
 ];
 
-/** True when data is a single printable character (no control keys). */
+/** Returns whether data is one printable character. */
 function isPrintable(data: string): boolean {
   if (data.length !== 1) return false;
   const code = data.charCodeAt(0);
   return code >= 32 && code !== 127;
 }
 
-/** True when data is a single digit 1-9 (option shortcut keys). */
+/** Returns whether data is a single digit 1-9 (option shortcut keys). */
 function isOptionDigit(data: string): boolean {
   return data.length === 1 && data >= "1" && data <= "9";
 }
@@ -155,7 +155,6 @@ export async function promptApproval(
         if (index < OPTIONS.length) {
           submit(index);
         }
-        // Digits without a matching option are ignored.
         return;
       }
 
@@ -186,7 +185,6 @@ export async function promptApproval(
       lines.push(theme.fg("accent", "-".repeat(w)));
       for (let i = 0; i < titleLines.length; i++) {
         const line = titleLines[i];
-        // The input preview after the first line is rendered muted.
         if (i === 0) {
           wrappedWithPrefix(lines, " ", theme.fg("text", line), w);
         } else {

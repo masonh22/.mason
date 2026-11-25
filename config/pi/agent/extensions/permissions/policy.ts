@@ -79,7 +79,7 @@ export type GroupLevel = "deny" | "ask" | "read" | "write" | "full";
 /** Group levels in cycle order. */
 export const GROUP_LEVELS: readonly GroupLevel[] = ["deny", "ask", "read", "write", "full"];
 
-/** Type guard for values that must be one of GROUP_LEVELS. */
+/** Returns whether value is a group level. */
 export function isGroupLevel(value: unknown): value is GroupLevel {
   return typeof value === "string" && (GROUP_LEVELS as readonly string[]).includes(value);
 }
@@ -200,7 +200,7 @@ function matchesAnyPattern(patterns: ToolPattern[], name: string): boolean {
   return patterns.some((p) => p.regex.test(name));
 }
 
-/** First group whose "tools" patterns claim the tool, in config order. */
+/** Returns the first group whose "tools" patterns match the tool, in config order. */
 function findGroup(toolName: string, groups: GroupsConfig): string | undefined {
   for (const name of groups.order) {
     if (matchesAnyPattern(groups.definitions[name].tools, toolName)) {
@@ -239,13 +239,13 @@ export function evaluateGroup(
   }
   const group = groups.definitions[name];
   const level = levels[name] ?? group.default;
-  const klass = classifyTool(toolName, group);
+  const toolClass = classifyTool(toolName, group);
   const allowed =
     level === "full" ||
-    (level === "read" && klass === "read") ||
-    (level === "write" && klass !== "undeclared");
+    (level === "read" && toolClass === "read") ||
+    (level === "write" && toolClass !== "undeclared");
   const decision: Decision = level === "deny" ? "deny" : allowed ? "allow" : "ask";
-  return { decision, rule: `group ${name} (${level}, ${klass})` };
+  return { decision, rule: `group ${name} (${level}, ${toolClass})` };
 }
 
 /** Look up a value in the tool input by dot path ("" matches the whole input). */
@@ -272,7 +272,7 @@ function argMatches(rule: ArgPolicy, input: unknown): boolean {
   return rule.regex.test(text);
 }
 
-/** Short label for a rule's regex, used in denial messages and audit entries. */
+/** Returns a short label for a rule's regex, for denial messages and audit entries. */
 function regexLabel(regex: RegExp): string {
   const source = regex.source;
   return source.length > 40 ? source.slice(0, 40) + "..." : source;
@@ -370,10 +370,7 @@ export function resolveMode(
 /** Maximum characters of formatted input shown in the approval prompt. */
 const MAX_INPUT_CHARS = 2000;
 
-/**
- * Human-readable summary of a tool call for the approval prompt.
- * Shows the input JSON, truncated if very long.
- */
+/** Returns a human-readable summary of the tool input, for the approval prompt. */
 export function describeInput(input: unknown): string {
   let text: string;
   if (input === undefined || input === null) {

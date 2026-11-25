@@ -58,7 +58,7 @@ function bashArg(policy: Decision, regex: RegExp): ArgPolicy {
 }
 
 /** Arg rules for bash in the default modes. Denies come first and
- * ask-guards second: arg rules are first-match-wins, so a dangerous
+ * ask rules second: arg rules are first-match-wins, so a dangerous
  * token anywhere in the command line must outrank the allows below,
  * and the guards (chaining, substitution, redirection, network) keep
  * every allow rule read-only even though its anchor only checks the
@@ -76,7 +76,8 @@ const READONLY_BASH_ARGS: ArgPolicy[] = [
   bashArg("ask", /(>>?)\s*(?!(&|\/dev\/(null|tty)))\S/),
 
   bashArg("allow", /^(grep|egrep|fgrep)\b/),
-  // Guards skip past pipes so only find's own arguments are checked.
+  // The guard stops at the first ;, | or &, so it only checks find's
+  // own arguments.
   bashArg("allow", /^find\b(?![^;|&]*\s(-delete|-exec\w*|-ok\w*|-fprint\w*))/),
   bashArg("allow", /^(ls|ll|dir|tree|exa|eza)\b/),
   bashArg("allow", /^(cat|head|tail|less|more|bat|nl)\b/),
@@ -105,7 +106,7 @@ const READONLY_BASH_ARGS: ArgPolicy[] = [
  * Modes used when the config file is missing or unusable. The tools
  * that ship with stock pi, classified:
  * - read: read, grep, find, ls, tool_search (no side effects).
- * - write: write, edit, layered over read.
+ * - write: inherits read, adds write and edit.
  * - neither: bash and powershell run arbitrary commands, and codemode
  *   runs scripts that call other tools, so they stay at "ask"; bash
  *   gets arg-level allows for read-only commands only.
@@ -455,6 +456,6 @@ export function loadPermissionsConfig(): { config: PermissionsConfig; errors: st
       definitions[name] = definition;
     }
   }
-  const built = buildModesConfig(definitions, mode, errors);
-  return { config: { ...built, groups }, errors };
+  const modeConfig = buildModesConfig(definitions, mode, errors);
+  return { config: { ...modeConfig, groups }, errors };
 }

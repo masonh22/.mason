@@ -26,9 +26,8 @@
  *
  * Behavior:
  * - "allow": runs without prompting.
- * - "deny": blocks the call. Denying blocks only that call; the agent
- *   sees the denial reason and can continue. It does not terminate the
- *   run.
+ * - "deny": blocks the call. The agent sees the denial reason and can
+ *   continue; denial does not end the run.
  * - "ask" (default): shows an approve/deny prompt before execution.
  *   The user can type a denial reason; without one a default message
  *   is used.
@@ -134,14 +133,14 @@ export default function permissionsExtension(pi: ExtensionAPI) {
     ctx.ui.setStatus(STATUS_KEY, status);
   };
 
-  /** Last mode recorded in this session's active branch, if still valid. */
+  /** Returns the last mode recorded in this session's active branch, if that mode is still defined. */
   const restoreMode = (ctx: ExtensionContext): string | undefined => {
     const entry = ctx.sessionManager
       .getBranch()
       .findLast((e) => e.type === "custom" && e.customType === MODE_ENTRY_TYPE);
     const mode = (entry?.data as PermissionModeEntry | undefined)?.mode;
     // The newest record names a mode that no longer exists; older
-    // records are unlikely to fare better.
+    // records are unlikely to name a valid mode either.
     return typeof mode === "string" && config.modes.resolved[mode] !== undefined
       ? mode
       : undefined;
@@ -197,7 +196,7 @@ export default function permissionsExtension(pi: ExtensionAPI) {
       return;
     }
     // A hidden active mode is not in the cycle; indexOf returns -1
-    // and the rotation restarts from the first cyclable mode.
+    // and the rotation restarts from the first mode in the cycle.
     const index = cycle.indexOf(activeMode);
     setMode(cycle[(index + 1) % cycle.length], ctx);
   };
@@ -312,7 +311,7 @@ export default function permissionsExtension(pi: ExtensionAPI) {
     return `${name}: ${level}${suffix} [${group.tools.map((t) => t.pattern).join(", ")}]`;
   };
 
-  /** Interactive settings list for the mode and group levels (TUI only). */
+  /** Shows an interactive settings list for the mode and group levels (TUI only). */
   const showMenu = async (ctx: ExtensionContext): Promise<void> => {
     await ctx.ui.custom((tui, theme, _keybindings, done) => {
       const items: SettingItem[] = [
