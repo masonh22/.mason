@@ -206,6 +206,11 @@ export default function permissionsExtension(pi: ExtensionAPI) {
     handler: (ctx) => cycleMode(ctx),
   });
 
+  pi.registerShortcut("ctrl+shift+p", {
+    description: "Open permissions menu",
+    handler: (ctx) => showMenu(ctx),
+  });
+
   pi.registerCommand("permissions", {
     description: "Permissions menu; switch mode or set a group level",
     handler: async (args, ctx) => {
